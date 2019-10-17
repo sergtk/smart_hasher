@@ -2,14 +2,40 @@ import hashlib
 import sys
 import os.path
 
-# Ref: https://stackoverflow.com/questions/9181859/getting-percentage-complete-of-an-md5-checksum
+# fileChunkSize = 1024 * 1024
+fileChunkSize = 10
+
 def calcHash(fileName):
     # Ref: https://www.guru99.com/reading-and-writing-files-in-python.html
     f = open(fileName, "rb")
-    m = hashlib.md5()
-    m.update(f.read())
-    hash = m.hexdigest()
+    hasher = hashlib.md5()
+    hasher.update(f.read())
+    hash = hasher.hexdigest()
     return hash
+
+# Ref: https://stackoverflow.com/questions/9181859/getting-percentage-complete-of-an-md5-checksum
+def calcHashWithProgress(fileName):
+    readSize = 0
+    prevPercent = 0
+    hasher = hashlib.md5()
+    totalSize = os.path.getsize(fileName)
+
+    data = True
+    f = open(fileName, "rb")
+
+    while data:
+        # Read and update digest.
+        data = f.read(fileChunkSize)
+        readSize += len(data)
+        hasher.update(data)
+
+        # Calculate progress.
+        percent = 100 * readSize / totalSize
+        if percent > prevPercent:
+            print ('%d%% done' % percent)
+            prevPercent = percent
+    f.close()
+    return hasher.hexdigest()
 
 def getOutputFileName(inputFileName):
     outputFileName = inputFileName + ".md5"
@@ -64,7 +90,8 @@ try:
             print("Output file name '" + outputFileName + "' exists ... calculation of hash skipped.")
             continue;
         print("Calculate hash for file '" + inputFileName + "'...")
-        hash = calcHash(inputFileName)
+        # hash = calcHash(inputFileName)
+        hash = calcHashWithProgress(inputFileName)
         print("done")
 
         # Ref: https://stackoverflow.com/questions/6159900/correct-way-to-write-line-to-file
