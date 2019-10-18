@@ -85,11 +85,12 @@ def parseCommandLine():
         argValueStr = ", ".join(argValue)
         print('// ' + argName + ' -> ' + argValueStr)
 
-def getCurrentTimeStr():
-    return datetime.now().strftime("%Y.%m.%d %H:%M:%S")
+def getDateTimeStr(dateTime: datetime) -> str:
+    return dateTime.strftime("%Y.%m.%d %H:%M:%S")
 
 def handleInputFile(inputFileName):
-    print("Handle file start time: " + getCurrentTimeStr() + " (" + inputFileName + ")")
+    startDateTime = datetime.now();
+    print("Handle file start time: " + getDateTimeStr(startDateTime) + " (" + inputFileName + ")")
     outputFileName = getOutputFileName(inputFileName)
     # Ref: https://stackoverflow.com/questions/82831/how-do-i-check-whether-a-file-exists-without-exceptions
     if (os.path.exists(outputFileName)):
@@ -105,7 +106,11 @@ def handleInputFile(inputFileName):
         outputFile.write(hash + " *" + inputFileName)
 
     print("HASH: ", hash, "(" + outputFileName + ")")
-    print("Handle file end time: " + getCurrentTimeStr() + " (" + inputFileName + ")")
+
+    endDateTime = datetime.now();
+    print("Handle file end time: " + getDateTimeStr(endDateTime) + " (" + inputFileName + ")")
+    seconds = int((endDateTime - startDateTime).total_seconds());
+    print("Elapsed time: {0}:{1:02d}:{2:02d}".format(int(seconds / 60 / 60), int(seconds / 60) % 60, seconds % 60))
 
 try:
     parseCommandLine()
