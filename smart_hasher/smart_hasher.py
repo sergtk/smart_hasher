@@ -32,14 +32,15 @@ def calcHashWithProgress(fileName):
         hasher.update(data)
 
         # Calculate progress.
-        percent = int(1000 * readSize / totalSize)
+        percent = int(10000 * readSize / totalSize)
 
         # Ref: https://www.pythoncentral.io/pythons-time-sleep-pause-wait-sleep-stop-your-code/
         # time.sleep(1)
 
         if percent > prevPercent:
-            # Ref: https://stackoverflow.com/a/3395158/13441
-            print ('{0}.{1}% done ({2:,d} bytes)\r'.format(int(percent / 10), int(percent % 10), readSize), end="")
+            # Ref: "Using multiple arguments for string formatting in Python (e.g., '%s … %s')" https://stackoverflow.com/a/3395158/13441
+            # Ref: "Display number with leading zeros" https://stackoverflow.com/a/134951/13441
+            print ('{0}.{1:02d}% done ({2:,d} bytes)\r'.format(int(percent / 100), int(percent % 100), readSize), end="")
             prevPercent = percent
     f.close()
     print ('                                                                      \r', end="") # Clear line
@@ -88,7 +89,7 @@ def parseCommandLine():
 def getDateTimeStr(dateTime: datetime) -> str:
     return dateTime.strftime("%Y.%m.%d %H:%M:%S")
 
-# Returns false if has not calculated, probably because it was already calculated.
+# Returns false if hash not calculated, probably because it was already calculated.
 def handleInputFile(inputFileName):
     startDateTime = datetime.now();
     print("Handle file start time: " + getDateTimeStr(startDateTime) + " (" + inputFileName + ")")
