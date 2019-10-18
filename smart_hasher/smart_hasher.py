@@ -88,6 +88,7 @@ def parseCommandLine():
 def getDateTimeStr(dateTime: datetime) -> str:
     return dateTime.strftime("%Y.%m.%d %H:%M:%S")
 
+# Returns false if has not calculated, probably because it was already calculated.
 def handleInputFile(inputFileName):
     startDateTime = datetime.now();
     print("Handle file start time: " + getDateTimeStr(startDateTime) + " (" + inputFileName + ")")
@@ -95,7 +96,7 @@ def handleInputFile(inputFileName):
     # Ref: https://stackoverflow.com/questions/82831/how-do-i-check-whether-a-file-exists-without-exceptions
     if (os.path.exists(outputFileName)):
         print("Output file name '" + outputFileName + "' exists ... calculation of hash skipped.")
-        return
+        return False
     print("Calculate hash for file '" + inputFileName + "'...")
     # hash = calcHash(inputFileName)
     hash = calcHashWithProgress(inputFileName)
@@ -111,16 +112,18 @@ def handleInputFile(inputFileName):
     print("Handle file end time: " + getDateTimeStr(endDateTime) + " (" + inputFileName + ")")
     seconds = int((endDateTime - startDateTime).total_seconds());
     print("Elapsed time: {0}:{1:02d}:{2:02d}".format(int(seconds / 60 / 60), int(seconds / 60) % 60, seconds % 60))
-
+      
+    return True
 try:
     parseCommandLine()
 
     if (not "inputFile" in cmdLineArgs):
         print ("Input file(s) is not specified")
-        exit()
+        exit(5)
    
     for inputFileName in cmdLineArgs["inputFile"]:
-        handleInputFile(inputFileName)
+        if (not handleInputFile(inputFileName)):
+            exit(10)
 
 except Exception as ex:
     print("Exception thrown:\n", ex)
