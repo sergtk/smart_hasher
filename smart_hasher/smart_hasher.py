@@ -11,7 +11,7 @@ fileChunkSize = 1024 * 1024
 sizeNames = ("B", "Kb", "Mb", "Gb", "Tb", "Pb", "Eb", "Zb", "Yb")
 
 # Ref: "Better way to convert file sizes in Python" https://stackoverflow.com/a/14822210/13441
-def convertSize(sizeBytes: int) -> str:
+def convertSize(sizeBytes: float) -> str:
    global sizeNames
 
    if sizeBytes == 0:
@@ -39,12 +39,15 @@ def calcHash(fileName):
 
 # Ref: https://stackoverflow.com/questions/9181859/getting-percentage-complete-of-an-md5-checksum
 def calcHashWithProgress(fileName):
-    readSize = 0
+    curSize = 0
     prevPercent = 0
     hasher = hashlib.md5()
     totalSize = os.path.getsize(fileName)
 
-    startMoment = datetime.now();
+    recentMoment = startMoment = datetime.now();
+    recentSize = 0
+    recentSpeed = 0
+    recentSpeedReadable = convertSize(recentSpeed)
 
     data = True
     f = open(fileName, "rb")
@@ -52,11 +55,13 @@ def calcHashWithProgress(fileName):
     while data:
         # Read and update digest.
         data = f.read(fileChunkSize)
-        readSize += len(data)
+        curSize += len(data)
         hasher.update(data)
 
+        recentSize += len(data)
+
         # Calculate progress.
-        percent = int(10000 * readSize / totalSize)
+        percent = int(10000 * curSize / totalSize)
 
         # Ref: https://www.pythoncentral.io/pythons-time-sleep-pause-wait-sleep-stop-your-code/
         # time.sleep(1)
@@ -66,16 +71,24 @@ def calcHashWithProgress(fileName):
             elapsedSeconds = (curMoment - startMoment).total_seconds()
             remainSeconds = elapsedSeconds / percent * (10000 - percent);
 
-            speed = readSize / elapsedSeconds;
+            speed = curSize / elapsedSeconds;
             speedReadable = convertSize(speed);
+
+            recentSeconds = (curMoment - recentMoment).total_seconds()
+            if (recentSeconds > 3 and recentSize > 0):
+                recentSpeed = recentSize / recentSeconds
+                recentSpeedReadable = convertSize(recentSpeed)
+                recentMoment = curMoment
+                recentSize = 0
 
             # Ref: "Using multiple arguments for string formatting in Python (e.g., '%s … %s')" https://stackoverflow.com/a/3395158/13441
             # Ref: "Display number with leading zeros" https://stackoverflow.com/a/134951/13441
-            print ('{0}.{1:02d}% done ({2:,d} bytes. Remaining time: {3}. Speed: {4}/sec)\r'.
-                   format(int(percent / 100), int(percent % 100), readSize, formatSeconds(remainSeconds), speedReadable), end="")
+            print ('{0}.{1:02d}% done ({2:,d} bytes). Remaining time: {3}. Speed for file: {4}/sec., recent speed: {5}/sec.   \r'.
+                   format(int(percent / 100), int(percent % 100), curSize, formatSeconds(remainSeconds), speedReadable, recentSpeedReadable),
+                   end="")
             prevPercent = percent
     f.close()
-    print ('                                                                      \r', end="") # Clear line
+    print ('                                                                                      \r', end="") # Clear line
     return hasher.hexdigest()
 
 def getOutputFileName(inputFileName):
