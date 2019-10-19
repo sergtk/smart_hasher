@@ -3,10 +3,32 @@ import sys
 import os.path
 import time
 from datetime import datetime
+import math
 
 fileChunkSize = 1024 * 1024
 # fileChunkSize = 500
 
+sizeNames = ("B", "Kb", "Mb", "Gb", "Tb", "Pb", "Eb", "Zb", "Yb")
+
+# Ref: "Better way to convert file sizes in Python" https://stackoverflow.com/a/14822210/13441
+def convertSize(sizeBytes: int) -> str:
+   global sizeNames
+
+   if sizeBytes == 0:
+       return "0 " + sizeNames[0]
+   # sizeNames = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+   i = int(math.floor(math.log(sizeBytes, 1024)))
+   p = math.pow(1024, i)
+   s = round(sizeBytes / p, 2)
+   return "%s %s" % (s, sizeNames[i])
+
+def formatSeconds(seconds: float) -> str:
+    # seconds = int(diff.total_seconds());
+    sec = int(seconds)
+    ret =  "{0}:{1:02d}:{2:02d}".format(int(sec / 60 / 60), int(sec / 60) % 60, sec % 60)
+    return ret
+
+# This function is not used 
 def calcHash(fileName):
     # Ref: https://www.guru99.com/reading-and-writing-files-in-python.html
     f = open(fileName, "rb")
@@ -21,6 +43,8 @@ def calcHashWithProgress(fileName):
     prevPercent = 0
     hasher = hashlib.md5()
     totalSize = os.path.getsize(fileName)
+
+    startMoment = datetime.now();
 
     data = True
     f = open(fileName, "rb")
@@ -38,9 +62,17 @@ def calcHashWithProgress(fileName):
         # time.sleep(1)
 
         if percent > prevPercent:
+            curMoment = datetime.now();
+            elapsedSeconds = (curMoment - startMoment).total_seconds()
+            remainSeconds = elapsedSeconds / percent * (10000 - percent);
+
+            speed = readSize / elapsedSeconds;
+            speedReadable = convertSize(speed);
+
             # Ref: "Using multiple arguments for string formatting in Python (e.g., '%s … %s')" https://stackoverflow.com/a/3395158/13441
             # Ref: "Display number with leading zeros" https://stackoverflow.com/a/134951/13441
-            print ('{0}.{1:02d}% done ({2:,d} bytes)\r'.format(int(percent / 100), int(percent % 100), readSize), end="")
+            print ('{0}.{1:02d}% done ({2:,d} bytes. Remaining time: {3}. Speed: {4}/sec)\r'.
+                   format(int(percent / 100), int(percent % 100), readSize, formatSeconds(remainSeconds), speedReadable), end="")
             prevPercent = percent
     f.close()
     print ('                                                                      \r', end="") # Clear line
@@ -112,7 +144,11 @@ def handleInputFile(inputFileName):
     endDateTime = datetime.now();
     print("Handle file end time: " + getDateTimeStr(endDateTime) + " (" + inputFileName + ")")
     seconds = int((endDateTime - startDateTime).total_seconds());
-    print("Elapsed time: {0}:{1:02d}:{2:02d}".format(int(seconds / 60 / 60), int(seconds / 60) % 60, seconds % 60))
+    # print("Elapsed time: {0}:{1:02d}:{2:02d}".format(int(seconds / 60 / 60), int(seconds / 60) % 60, seconds % 60))
+
+    fileSize = os.path.getsize(inputFileName)
+    speed = fileSize / seconds if seconds > 0 else 0
+    print("Elapsed time: {0} (Average speed: {1}/sec)".format(formatSeconds(seconds), convertSize(speed)))
       
     return True
 try:
