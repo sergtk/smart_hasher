@@ -47,7 +47,7 @@ def calcHashWithProgress(fileName):
     recentMoment = startMoment = datetime.now();
     recentSize = 0
     recentSpeed = 0
-    recentSpeedReadable = convertSize(recentSpeed)
+    recentSpeedReadable = "-"
 
     data = True
     f = open(fileName, "rb")
@@ -83,7 +83,7 @@ def calcHashWithProgress(fileName):
 
             # Ref: "Using multiple arguments for string formatting in Python (e.g., '%s … %s')" https://stackoverflow.com/a/3395158/13441
             # Ref: "Display number with leading zeros" https://stackoverflow.com/a/134951/13441
-            print ('{0}.{1:02d}% done ({2:,d} bytes). Remaining time: {3}. Speed for file: {4}/sec., recent speed: {5}/sec.   \r'.
+            print ('{0}.{1:02d}% done ({2:,d} bytes). Remaining time: {3}. File average speed: {4}/sec. Recent speed: {5}/sec.   \r'.
                    format(int(percent / 100), int(percent % 100), curSize, formatSeconds(remainSeconds), speedReadable, recentSpeedReadable),
                    end="")
             prevPercent = percent
