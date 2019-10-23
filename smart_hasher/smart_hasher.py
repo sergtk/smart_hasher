@@ -87,7 +87,7 @@ def get_output_file_name(input_file_name):
     output_file_name = input_file_name + ".md5"
 
     if cmd_line_args.hash_file_name_output_postfix:
-        output_file_name += "." + cmd_line_args.hash_file_name_output_postfix
+        output_file_name += "." + cmd_line_args.hash_file_name_output_postfix[0]
     return output_file_name
 
 # Ref: "Argparse Tutorial" https://docs.python.org/3/howto/argparse.html
@@ -96,10 +96,13 @@ def parse_command_line():
     global cmd_line_args;
 
     parser = argparse.ArgumentParser(description='This app is to check hashes of files with extended features.')
-    parser.add_argument('--input_file', '-if', action="append", help="Specify one or more input files", required=True, dest='input_file_names')
-    parser.add_argument('--hash_file_name_output_postfix', '-op', help="Specify postfix, which will be appended to the end of output file names")
+    parser.add_argument('--input_file', '-if', action="append", help="Specify one or more input files", required=True)
+    parser.add_argument('--hash_file_name_output_postfix', '-op', action='append', help="Specify postfix, which will be appended to the end of output file names")
 
+    # Ref: https://stackoverflow.com/questions/23032514/argparse-disable-same-argument-occurrences
     cmd_line_args = parser.parse_args()
+    if cmd_line_args.hash_file_name_output_postfix and len(cmd_line_args.hash_file_name_output_postfix) > 1:
+        parser.error("--hash_file_name_output_postfix appears several times.")
 
 def get_date_time_str(dateTime: datetime) -> str:
     return dateTime.strftime("%Y.%m.%d %H:%M:%S")
@@ -136,7 +139,7 @@ def handle_input_file(input_file_name):
 try:
     parse_command_line()
 
-    for input_file_name in cmd_line_args.input_file_names:
+    for input_file_name in cmd_line_args.input_file:
         if (not handle_input_file(input_file_name)):
             exit(10)
 
