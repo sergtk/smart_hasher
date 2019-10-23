@@ -7,10 +7,26 @@ import math
 import argparse
 import traceback
 
+
+# Ref: https://docs.python.org/2/library/hashlib.html
+# Ref: https://stackoverflow.com/questions/60208/replacements-for-switch-statement-in-pythons
+
+hash_algos =  {
+    "md5": hashlib.md5(),
+    "sha1": hashlib.sha1(),
+    "sha224": hashlib.sha224(),
+    "sha256": hashlib.sha256(),
+    "sha384": hashlib.sha384(),
+    "sha512": hashlib.sha512(),
+};
+
+hash_algo_default_str = "sha1"
+
 file_chunk_size = 1024 * 1024
 # file_chunk_size = 500
 
 size_names = ("B", "Kb", "Mb", "Gb", "Tb", "Pb", "Eb", "Zb", "Yb")
+
 
 # Ref: "Better way to convert file sizes in Python" https://stackoverflow.com/a/14822210/13441
 def convert_size(size_bytes: float) -> str:
@@ -30,11 +46,17 @@ def format_seconds(seconds: float) -> str:
     ret =  "{0}:{1:02d}:{2:02d}".format(int(sec / 60 / 60), int(sec / 60) % 60, sec % 60)
     return ret
 
+# Ref: https://docs.python.org/2/library/hashlib.html
+def get_hasher():
+    hash_str = cmd_line_args.hash_algo;
+    ret = hash_algos[hash_str];
+    return ret;
+
 # Ref: https://stackoverflow.com/questions/9181859/getting-percentage-complete-of-an-md5-checksum
 def calc_hash(file_name):
     cur_size = 0
     prev_percent = 0
-    hasher = hashlib.md5()
+    hasher = get_hasher()
     total_size = os.path.getsize(file_name)
 
     recent_moment = start_moment = datetime.now();
@@ -62,6 +84,8 @@ def calc_hash(file_name):
         if percent > prev_percent:
             cur_moment = datetime.now();
             elapsed_seconds = (cur_moment - start_moment).total_seconds()
+            if (elapsed_seconds == 0):
+                continue
             remain_seconds = elapsed_seconds / percent * (10000 - percent);
 
             speed = cur_size / elapsed_seconds;
@@ -85,7 +109,7 @@ def calc_hash(file_name):
     return hasher.hexdigest()
 
 def get_output_file_name(input_file_name):
-    output_file_name = input_file_name + ".md5"
+    output_file_name = input_file_name + "." + cmd_line_args.hash_algo
 
     if cmd_line_args.hash_file_name_output_postfix:
         output_file_name += "." + cmd_line_args.hash_file_name_output_postfix[0]
@@ -96,9 +120,10 @@ def get_output_file_name(input_file_name):
 def parse_command_line():
     global cmd_line_args;
 
-    parser = argparse.ArgumentParser(description='This app is to check hashes of files with extended features.')
+    parser = argparse.ArgumentParser(description='This application is to calculate hashes of files with extended features.')
     parser.add_argument('--input_file', '-if', action="append", help="Specify one or more input files", required=True)
-    parser.add_argument('--hash_file_name_output_postfix', '-op', action='append', help="Specify postfix, which will be appended to the end of output file names")
+    parser.add_argument('--hash_file_name_output_postfix', '-op', action='append', help="Specify postfix, which will be appended to the end of output file names. This is to specify for different contextes, e.g. if file name ends with \".md5\", then it ends with \"md5.<value>\"")
+    parser.add_argument('--hash_algo', help="Specify hash algo (default: {0})".format(hash_algo_default_str), default=hash_algo_default_str, choices=hash_algos.keys())
 
     # Ref: https://stackoverflow.com/questions/23032514/argparse-disable-same-argument-occurrences
     cmd_line_args = parser.parse_args()
