@@ -122,13 +122,13 @@ def parse_command_line():
 
     parser = argparse.ArgumentParser(description='This application is to calculate hashes of files with extended features.')
     parser.add_argument('--input-file', '-if', action="append", help="Specify one or more input files", required=True)
-    parser.add_argument('--hash-file_name_output_postfix', '-op', action='append', help="Specify postfix, which will be appended to the end of output file names. This is to specify for different contextes, e.g. if file name ends with \".md5\", then it ends with \"md5.<value>\"")
+    parser.add_argument('--hash-file-name-output-postfix', '-op', action='append', help="Specify postfix, which will be appended to the end of output file names. This is to specify for different contextes, e.g. if file name ends with \".md5\", then it ends with \"md5.<value>\"")
     parser.add_argument('--hash-algo', help="Specify hash algo (default: {0})".format(hash_algo_default_str), default=hash_algo_default_str, choices=hash_algos.keys())
 
     # Ref: https://stackoverflow.com/questions/23032514/argparse-disable-same-argument-occurrences
     cmd_line_args = parser.parse_args()
     if cmd_line_args.hash_file_name_output_postfix and len(cmd_line_args.hash_file_name_output_postfix) > 1:
-        parser.error("--hash_file_name_output_postfix appears several times.")
+        parser.error("--hash-file-name-output-postfix appears several times.")
 
 def get_date_time_str(dateTime: datetime) -> str:
     return dateTime.strftime("%Y.%m.%d %H:%M:%S")
