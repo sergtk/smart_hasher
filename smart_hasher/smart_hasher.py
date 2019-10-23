@@ -6,19 +6,19 @@ from datetime import datetime
 import math
 import argparse
 import traceback
-
+from collections import OrderedDict
 
 # Ref: https://docs.python.org/2/library/hashlib.html
 # Ref: https://stackoverflow.com/questions/60208/replacements-for-switch-statement-in-pythons
-
-hash_algos =  {
-    "md5": hashlib.md5(),
-    "sha1": hashlib.sha1(),
-    "sha224": hashlib.sha224(),
-    "sha256": hashlib.sha256(),
-    "sha384": hashlib.sha384(),
-    "sha512": hashlib.sha512(),
-};
+# Ref: https://stackoverflow.com/questions/25480089/right-way-to-initialize-an-ordereddict-using-its-constructor-such-that-it-retain
+hash_algos = OrderedDict([
+    ("md5", hashlib.md5()),
+    ("sha1", hashlib.sha1()),
+    ("sha224", hashlib.sha224()),
+    ("sha256", hashlib.sha256()),
+    ("sha384", hashlib.sha384()),
+    ("sha512", hashlib.sha512()),
+]);
 
 hash_algo_default_str = "sha1"
 

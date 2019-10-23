@@ -1,6 +1,6 @@
     usage: smart_hasher.py [-h] --input-file INPUT_FILE
                            [--hash-file-name-output-postfix HASH_FILE_NAME_OUTPUT_POSTFIX]
-                           [--hash-algo {sha256,md5,sha512,sha224,sha384,sha1}]
+                           [--hash-algo {md5,sha1,sha224,sha256,sha384,sha512}]
 
     This application is to calculate hashes of files with extended features.
 
@@ -13,5 +13,5 @@
                             output file names. This is to specify for different
                             contextes, e.g. if file name ends with ".md5", then it
                             ends with "md5.<value>"
-      --hash-algo {sha256,md5,sha512,sha224,sha384,sha1}
+      --hash-algo {md5,sha1,sha224,sha256,sha384,sha512}
                             Specify hash algo (default: sha1)
