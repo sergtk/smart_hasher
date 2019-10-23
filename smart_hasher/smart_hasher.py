@@ -5,6 +5,7 @@ import time
 from datetime import datetime
 import math
 import argparse
+import traceback
 
 file_chunk_size = 1024 * 1024
 # file_chunk_size = 500
@@ -144,4 +145,9 @@ try:
             exit(10)
 
 except Exception as ex:
-    print("Exception thrown:\n", ex)
+    # Ref: https://stackoverflow.com/a/4564595/13441
+    # Wierd that `ex` is not used
+    print(traceback.format_exc())
+
+	# Short message
+	# print("Exception thrown:\n", ex)
