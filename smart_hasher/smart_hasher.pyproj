@@ -13,7 +13,7 @@
     <RootNamespace>smart_hasher</RootNamespace>
     <IsWindowsApplication>False</IsWindowsApplication>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>--input-file E:\projects\soft_tools\smart_hasher\testData\testFile.txt  --hash-file-name-output-postfix debug3 --hash-algo md5</CommandLineArguments>
+    <CommandLineArguments>--hash-file-name-output-postfix AAA --input-folder E:\projects\soft_tools\smart_hasher\testData\dir1 --input-folder-file-mask-include *.AAA;*.txt --input-folder-file-mask-exclude *.AAA</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">

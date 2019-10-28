@@ -6,6 +6,8 @@ from datetime import datetime
 import math
 import argparse
 import traceback
+import ntpath
+import fnmatch
 from collections import OrderedDict
 
 # Ref: https://docs.python.org/2/library/hashlib.html
@@ -121,12 +123,17 @@ def parse_command_line():
     global cmd_line_args;
 
     parser = argparse.ArgumentParser(description='This application is to calculate hashes of files with extended features.')
-    parser.add_argument('--input-file', '-if', action="append", help="Specify one or more input files", required=True)
+    parser.add_argument('--input-file', '-if', action="append", help="Specify one or more input files")
+    parser.add_argument('--input-folder', '-ifo', action="append", help="Specify one or more input folders. All files in folder are handled recursively")
+    parser.add_argument('--input-folder-file-mask-include', '-ifoi', help="Specify file mask to include for input folder. All files in the folder considered if not specified. Separate multiple mask with semicolon (;)")
+    parser.add_argument('--input-folder-file-mask-exclude', '-ifoe', help="Specify file mask to exclude for input folder. It is applied after --input-folder-file-mask-include. Separate multiple mask with semicolon (;)")
     parser.add_argument('--hash-file-name-output-postfix', '-op', action='append', help="Specify postfix, which will be appended to the end of output file names. This is to specify for different contextes, e.g. if file name ends with \".md5\", then it ends with \"md5.<value>\"")
     parser.add_argument('--hash-algo', help="Specify hash algo (default: {0})".format(hash_algo_default_str), default=hash_algo_default_str, choices=hash_algos.keys())
 
     # Ref: https://stackoverflow.com/questions/23032514/argparse-disable-same-argument-occurrences
     cmd_line_args = parser.parse_args()
+    if (not cmd_line_args.input_file and not cmd_line_args.input_folder):
+        parser.error("One or more input files and/or folders should be specified")
     if cmd_line_args.hash_file_name_output_postfix and len(cmd_line_args.hash_file_name_output_postfix) > 1:
         parser.error("--hash-file-name-output-postfix appears several times.")
 
@@ -162,12 +169,52 @@ def handle_input_file(input_file_name):
     print("Elapsed time: {0} (Average speed: {1}/sec)".format(format_seconds(seconds), convert_size(speed)))
       
     return True
+
+def file_masks_included(file_name):
+    # Ref: "Extract file name from path, no matter what the os/path format" https://stackoverflow.com/a/8384788/13441
+    base_name = ntpath.basename(file_name)
+
+    # Ref: https://docs.python.org/2/library/fnmatch.html
+    # if fnmatch.fnmatch(base_name, '*.txt'):
+
+    if (cmd_line_args.input_folder_file_mask_include):
+        file_included = False
+        include_masks = cmd_line_args.input_folder_file_mask_include.split(";")
+        for include_mask in include_masks:
+            if fnmatch.fnmatch(file_name, include_mask):
+                file_included = True
+                break
+        if not file_included:
+            return False;
+
+    if (cmd_line_args.input_folder_file_mask_exclude):
+        exclude_masks = cmd_line_args.input_folder_file_mask_exclude.split(";")
+        for exclude_mask in exclude_masks:
+            if fnmatch.fnmatch(file_name, exclude_mask):
+                return False;
+    return True;
+
+def handle_input_files():
+    if (cmd_line_args.input_file):
+        for input_file_name in cmd_line_args.input_file:
+            handle_input_file(input_file_name)
+
+    if (cmd_line_args.input_folder):
+        # Ref: https://docs.python.org/3/library/os.html#os.walk
+        # Ref: https://www.pythoncentral.io/how-to-traverse-a-directory-tree-in-python-guide-to-os-walk/
+        for input_folder in cmd_line_args.input_folder:
+            for dir_name, subdir_list, file_list in os.walk(input_folder):
+                for base_file_name in file_list:
+                    input_file_name = os.path.join(dir_name, base_file_name)
+                    if not file_masks_included(input_file_name):
+                        continue
+                    # print("{0} -> {1}".format(dir_name, base_file_name));
+                    handle_input_file(input_file_name)
+
 try:
     parse_command_line()
 
-    for input_file_name in cmd_line_args.input_file:
-        if (not handle_input_file(input_file_name)):
-            exit(10)
+    handle_input_files()
 
 except Exception as ex:
     # Ref: https://stackoverflow.com/a/4564595/13441
