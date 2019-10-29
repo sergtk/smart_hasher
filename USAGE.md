@@ -4,6 +4,7 @@
                            [--input-folder-file-mask-exclude INPUT_FOLDER_FILE_MASK_EXCLUDE]
                            [--hash-file-name-output-postfix HASH_FILE_NAME_OUTPUT_POSTFIX]
                            [--hash-algo {md5,sha1,sha224,sha256,sha384,sha512}]
+                           [--pause-after-file PAUSE_AFTER_FILE]
 
     This application is to calculate hashes of files with extended features.
 
@@ -29,3 +30,6 @@
                             ends with "md5.<value>"
       --hash-algo {md5,sha1,sha224,sha256,sha384,sha512}
                             Specify hash algo (default: sha1)
+      --pause-after-file PAUSE_AFTER_FILE, -pf PAUSE_AFTER_FILE
+                            Specify pause after every file handled, in seconds.
+                            Note, if file is skipped, then no pause applied

@@ -9,6 +9,7 @@ import traceback
 import ntpath
 import fnmatch
 from collections import OrderedDict
+import msvcrt
 
 # Ref: https://docs.python.org/2/library/hashlib.html
 # Ref: https://stackoverflow.com/questions/60208/replacements-for-switch-statement-in-pythons
@@ -80,6 +81,10 @@ def calc_hash(file_name):
         # Calculate progress.
         percent = int(10000 * cur_size / total_size)
 
+        pi = is_program_interrupted();
+        if (pi != 0):
+            return pi
+
         # Ref: https://www.pythoncentral.io/pythons-time-sleep-pause-wait-sleep-stop-your-code/
         # time.sleep(1)
 
@@ -129,6 +134,7 @@ def parse_command_line():
     parser.add_argument('--input-folder-file-mask-exclude', '-ifoe', help="Specify file mask to exclude for input folder. It is applied after --input-folder-file-mask-include. Separate multiple mask with semicolon (;)")
     parser.add_argument('--hash-file-name-output-postfix', '-op', action='append', help="Specify postfix, which will be appended to the end of output file names. This is to specify for different contextes, e.g. if file name ends with \".md5\", then it ends with \"md5.<value>\"")
     parser.add_argument('--hash-algo', help="Specify hash algo (default: {0})".format(hash_algo_default_str), default=hash_algo_default_str, choices=hash_algos.keys())
+    parser.add_argument('--pause-after-file', '-pf', help="Specify pause after every file handled, in seconds. Note, if file is skipped, then no pause applied", type=int)
 
     # Ref: https://stackoverflow.com/questions/23032514/argparse-disable-same-argument-occurrences
     cmd_line_args = parser.parse_args()
@@ -136,6 +142,9 @@ def parse_command_line():
         parser.error("One or more input files and/or folders should be specified")
     if cmd_line_args.hash_file_name_output_postfix and len(cmd_line_args.hash_file_name_output_postfix) > 1:
         parser.error("--hash-file-name-output-postfix appears several times.")
+
+    if cmd_line_args.pause_after_file and cmd_line_args.pause_after_file <= 0:
+        parser.error('--pause-after-file must be greater than zero')
 
 def get_date_time_str(dateTime: datetime) -> str:
     return dateTime.strftime("%Y.%m.%d %H:%M:%S")
@@ -148,9 +157,12 @@ def handle_input_file(input_file_name):
     # Ref: https://stackoverflow.com/questions/82831/how-do-i-check-whether-a-file-exists-without-exceptions
     if (os.path.exists(output_file_name)):
         print("Output file name '" + output_file_name + "' exists ... calculation of hash skipped.")
-        return False
+        return 2
     print("Calculate hash for file '" + input_file_name + "'...")
     hash = calc_hash(input_file_name)
+    if (type(hash) is int):
+        # This is exit code
+        return hash
 
     # Ref: https://stackoverflow.com/questions/6159900/correct-way-to-write-line-to-file
     with open(output_file_name, 'a') as outputFile:
@@ -167,8 +179,12 @@ def handle_input_file(input_file_name):
     file_size = os.path.getsize(input_file_name)
     speed = file_size / seconds if seconds > 0 else 0
     print("Elapsed time: {0} (Average speed: {1}/sec)".format(format_seconds(seconds), convert_size(speed)))
-      
-    return True
+     
+    p = pause()
+    if (p != 0):
+        return p
+
+    return 0
 
 def file_masks_included(file_name):
     # Ref: "Extract file name from path, no matter what the os/path format" https://stackoverflow.com/a/8384788/13441
@@ -194,10 +210,42 @@ def file_masks_included(file_name):
                 return False;
     return True;
 
+
+def is_program_interrupted():
+    # Ref: https://stackoverflow.com/questions/24072790/detect-key-press-in-python
+    if msvcrt.kbhit():
+        key = msvcrt.getch()
+        if key == b'\x1b':
+            print("\nExit program? (Press 'y' to exit or other key to continue)\n", end="")
+            key = msvcrt.getch()
+            if (key == b'y'):
+                print("{0}\nProgram interrupted by user".format(str(key)))
+                return 8
+    return 0
+
+def pause():
+    if (not cmd_line_args.pause_after_file):
+        return 0;
+
+    # Ref: https://wiki.python.org/moin/ForLoop
+    # Ref: https://stackoverflow.com/questions/44834493/a-single-python-loop-from-zero-to-n-to-zero
+    for s in range(cmd_line_args.pause_after_file, 0, -1):
+        print("Pause {0} seconds... Press ESC to exit program\r".format(s), end="")
+        # Ref: https://www.journaldev.com/15797/python-time-sleep
+        time.sleep(1)
+        # Ref: https://stackoverflow.com/questions/24072790/detect-key-press-in-python
+        pi = is_program_interrupted()
+        if pi != 0:
+            return pi;
+    print(" " * 40)
+    return 0;
+
 def handle_input_files():
     if (cmd_line_args.input_file):
         for input_file_name in cmd_line_args.input_file:
-            handle_input_file(input_file_name)
+            h = handle_input_file(input_file_name)
+            if h > 2:
+                return h
 
     if (cmd_line_args.input_folder):
         # Ref: https://docs.python.org/3/library/os.html#os.walk
@@ -209,12 +257,17 @@ def handle_input_files():
                     if not file_masks_included(input_file_name):
                         continue
                     # print("{0} -> {1}".format(dir_name, base_file_name));
-                    handle_input_file(input_file_name)
+                    h = handle_input_file(input_file_name)
+                    if h > 2:
+                        return h
+    return 0;
 
 try:
     parse_command_line()
-
-    handle_input_files()
+    
+    e = handle_input_files()
+    #print("e = {0}".format(e))
+    exit(e)
 
 except Exception as ex:
     # Ref: https://stackoverflow.com/a/4564595/13441
