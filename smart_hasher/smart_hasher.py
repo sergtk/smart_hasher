@@ -130,8 +130,8 @@ def parse_command_line():
     parser = argparse.ArgumentParser(description='This application is to calculate hashes of files with extended features.')
     parser.add_argument('--input-file', '-if', action="append", help="Specify one or more input files")
     parser.add_argument('--input-folder', '-ifo', action="append", help="Specify one or more input folders. All files in folder are handled recursively")
-    parser.add_argument('--input-folder-file-mask-include', '-ifoi', help="Specify file mask to include for input folder. All files in the folder considered if not specified. Separate multiple mask with semicolon (;)")
-    parser.add_argument('--input-folder-file-mask-exclude', '-ifoe', help="Specify file mask to exclude for input folder. It is applied after --input-folder-file-mask-include. Separate multiple mask with semicolon (;)")
+    parser.add_argument('--input-folder-file-mask-include', '-ifoi', help="Specify file mask to include for input folder. All files in the folder considered if not specified. Separate multiple masks with semicolon (;)")
+    parser.add_argument('--input-folder-file-mask-exclude', '-ifoe', help="Specify file mask to exclude for input folder. It is applied after --input-folder-file-mask-include. Separate multiple masks with semicolon (;)")
     parser.add_argument('--hash-file-name-output-postfix', '-op', action='append', help="Specify postfix, which will be appended to the end of output file names. This is to specify for different contextes, e.g. if file name ends with \".md5\", then it ends with \"md5.<value>\"")
     parser.add_argument('--hash-algo', help="Specify hash algo (default: {0})".format(hash_algo_default_str), default=hash_algo_default_str, choices=hash_algos.keys())
     parser.add_argument('--pause-after-file', '-pf', help="Specify pause after every file handled, in seconds. Note, if file is skipped, then no pause applied", type=int)
@@ -143,8 +143,8 @@ def parse_command_line():
     if cmd_line_args.hash_file_name_output_postfix and len(cmd_line_args.hash_file_name_output_postfix) > 1:
         parser.error("--hash-file-name-output-postfix appears several times.")
 
-    if cmd_line_args.pause_after_file and cmd_line_args.pause_after_file <= 0:
-        parser.error('--pause-after-file must be greater than zero')
+    if cmd_line_args.pause_after_file and cmd_line_args.pause_after_file < 0:
+        parser.error('--pause-after-file must be non-negative')
 
 def get_date_time_str(dateTime: datetime) -> str:
     return dateTime.strftime("%Y.%m.%d %H:%M:%S")
@@ -156,7 +156,7 @@ def handle_input_file(input_file_name):
     output_file_name = get_output_file_name(input_file_name)
     # Ref: https://stackoverflow.com/questions/82831/how-do-i-check-whether-a-file-exists-without-exceptions
     if (os.path.exists(output_file_name)):
-        print("Output file name '" + output_file_name + "' exists ... calculation of hash skipped.")
+        print("Output file name '" + output_file_name + "' exists ... calculation of hash skipped.\n")
         return 2
     print("Calculate hash for file '" + input_file_name + "'...")
     hash = calc_hash(input_file_name)
@@ -178,7 +178,7 @@ def handle_input_file(input_file_name):
 
     file_size = os.path.getsize(input_file_name)
     speed = file_size / seconds if seconds > 0 else 0
-    print("Elapsed time: {0} (Average speed: {1}/sec)".format(format_seconds(seconds), convert_size(speed)))
+    print("Elapsed time: {0} (Average speed: {1}/sec)\n".format(format_seconds(seconds), convert_size(speed)))
      
     p = pause()
     if (p != 0):
