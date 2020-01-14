@@ -11,18 +11,7 @@ import fnmatch
 from collections import OrderedDict
 import msvcrt
 
-# Ref: https://docs.python.org/2/library/hashlib.html
-# Ref: https://stackoverflow.com/questions/60208/replacements-for-switch-statement-in-pythons
-# Ref: https://stackoverflow.com/questions/25480089/right-way-to-initialize-an-ordereddict-using-its-constructor-such-that-it-retain
-hash_algos = OrderedDict([
-    ("md5", hashlib.md5()),
-    ("sha1", hashlib.sha1()),
-    ("sha224", hashlib.sha224()),
-    ("sha256", hashlib.sha256()),
-    ("sha384", hashlib.sha384()),
-    ("sha512", hashlib.sha512()),
-]);
-
+hash_algos = ("md5", "sha1", "sha224", "sha256", "sha384", "sha512");
 hash_algo_default_str = "sha1"
 
 file_chunk_size = 1024 * 1024
@@ -52,7 +41,8 @@ def format_seconds(seconds: float) -> str:
 # Ref: https://docs.python.org/2/library/hashlib.html
 def get_hasher():
     hash_str = cmd_line_args.hash_algo;
-    ret = hash_algos[hash_str];
+    # Ref: https://docs.python.org/3/library/hashlib.html#hashlib.new
+    ret = hashlib.new(hash_str);
     return ret;
 
 # Ref: https://stackoverflow.com/questions/9181859/getting-percentage-complete-of-an-md5-checksum
@@ -133,7 +123,7 @@ def parse_command_line():
     parser.add_argument('--input-folder-file-mask-include', '-ifoi', help="Specify file mask to include for input folder. All files in the folder considered if not specified. Separate multiple masks with semicolon (;)")
     parser.add_argument('--input-folder-file-mask-exclude', '-ifoe', help="Specify file mask to exclude for input folder. It is applied after --input-folder-file-mask-include. Separate multiple masks with semicolon (;)")
     parser.add_argument('--hash-file-name-output-postfix', '-op', action='append', help="Specify postfix, which will be appended to the end of output file names. This is to specify for different contextes, e.g. if file name ends with \".md5\", then it ends with \"md5.<value>\"")
-    parser.add_argument('--hash-algo', help="Specify hash algo (default: {0})".format(hash_algo_default_str), default=hash_algo_default_str, choices=hash_algos.keys())
+    parser.add_argument('--hash-algo', help="Specify hash algo (default: {0})".format(hash_algo_default_str), default=hash_algo_default_str, choices=hash_algos)
     parser.add_argument('--pause-after-file', '-pf', help="Specify pause after every file handled, in seconds. Note, if file is skipped, then no pause applied", type=int)
 
     # Ref: https://stackoverflow.com/questions/23032514/argparse-disable-same-argument-occurrences
