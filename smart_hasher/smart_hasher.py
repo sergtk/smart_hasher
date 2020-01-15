@@ -253,6 +253,7 @@ def handle_input_files():
     # remove duplicates
     # Ref: https://www.w3schools.com/python/python_howto_remove_duplicates.asp
     input_file_names = list(dict.fromkeys(input_file_names))
+    input_file_names.sort()
 
     file_count = len(input_file_names)
     for fi in range(0, file_count):
