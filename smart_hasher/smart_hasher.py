@@ -227,15 +227,15 @@ def pause():
         pi = is_program_interrupted()
         if pi != 0:
             return pi;
-    print(" " * 40)
+    print(" " * 60)
     return 0;
 
 def handle_input_files():
+    input_file_names = []
+
     if (cmd_line_args.input_file):
         for input_file_name in cmd_line_args.input_file:
-            h = handle_input_file(input_file_name)
-            if h > 2:
-                return h
+            input_file_names.append(input_file_name)
 
     if (cmd_line_args.input_folder):
         # Ref: https://docs.python.org/3/library/os.html#os.walk
@@ -247,9 +247,22 @@ def handle_input_files():
                     if not file_masks_included(input_file_name):
                         continue
                     # print("{0} -> {1}".format(dir_name, base_file_name));
-                    h = handle_input_file(input_file_name)
-                    if h > 2:
-                        return h
+                    input_file_names.append(input_file_name)
+
+
+    # remove duplicates
+    # Ref: https://www.w3schools.com/python/python_howto_remove_duplicates.asp
+    input_file_names = list(dict.fromkeys(input_file_names))
+
+    file_count = len(input_file_names)
+    for fi in range(0, file_count):
+        print("File {0} of {1}".format(fi + 1, file_count))
+
+        input_file_name = input_file_names[fi]
+        h = handle_input_file(input_file_name)
+        if h > 2:
+            return h
+
     return 0;
 
 try:
