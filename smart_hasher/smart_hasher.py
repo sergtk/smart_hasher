@@ -39,17 +39,16 @@ def format_seconds(seconds: float) -> str:
     return ret
 
 # Ref: https://docs.python.org/2/library/hashlib.html
-def get_hasher():
-    hash_str = cmd_line_args.hash_algo;
+def get_hasher(hash_str):
     # Ref: https://docs.python.org/3/library/hashlib.html#hashlib.new
     ret = hashlib.new(hash_str);
     return ret;
 
 # Ref: https://stackoverflow.com/questions/9181859/getting-percentage-complete-of-an-md5-checksum
-def calc_hash(file_name):
+def calc_hash(file_name, hash_str):
     cur_size = 0
     prev_percent = 0
-    hasher = get_hasher()
+    hasher = get_hasher(hash_str)
     total_size = os.path.getsize(file_name)
 
     recent_moment = start_moment = datetime.now();
@@ -149,7 +148,7 @@ def handle_input_file(input_file_name):
         print("Output file name '" + output_file_name + "' exists ... calculation of hash skipped.\n")
         return 2
     print("Calculate hash for file '" + input_file_name + "'...")
-    hash = calc_hash(input_file_name)
+    hash = calc_hash(input_file_name, cmd_line_args.hash_algo)
     if (type(hash) is int):
         # This is exit code
         return hash
@@ -267,11 +266,13 @@ def handle_input_files():
     return 0;
 
 try:
-    parse_command_line()
+
+    if __name__ == '__main__':
+        parse_command_line()
     
-    e = handle_input_files()
-    #print("e = {0}".format(e))
-    exit(e)
+        e = handle_input_files()
+        #print("e = {0}".format(e))
+        exit(e)
 
 except Exception as ex:
     # Ref: https://stackoverflow.com/a/4564595/13441
