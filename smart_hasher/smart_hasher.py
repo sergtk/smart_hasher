@@ -45,7 +45,7 @@ def get_hasher(hash_str):
     return ret;
 
 # Ref: https://stackoverflow.com/questions/9181859/getting-percentage-complete-of-an-md5-checksum
-def calc_hash(file_name, hash_str):
+def calc_hash(file_name, hash_str, suppress_output):
     cur_size = 0
     prev_percent = 0
     hasher = get_hasher(hash_str)
@@ -94,7 +94,7 @@ def calc_hash(file_name, hash_str):
                 recent_moment = cur_moment
                 recent_size = 0
 
-            if not cmd_line_args.suppress_output:
+            if not suppress_output:
                 # Ref: "Using multiple arguments for string formatting in Python (e.g., '%s … %s')" https://stackoverflow.com/a/3395158/13441
                 # Ref: "Display number with leading zeros" https://stackoverflow.com/a/134951/13441
                 print ('{0}.{1:02d}% done ({2:,d} bytes). Remaining time: {3}. File average speed: {4}/sec. Recent speed: {5}/sec.   \r'.
@@ -102,7 +102,7 @@ def calc_hash(file_name, hash_str):
                        end="")
             prev_percent = percent
     f.close()
-    if not cmd_line_args.suppress_output:
+    if not suppress_output:
         print ('                                                                                      \r', end="") # Clear line
     return hasher.hexdigest()
 
@@ -154,7 +154,7 @@ def handle_input_file(input_file_name):
             return 2
     if not cmd_line_args.suppress_output:
         print("Calculate hash for file '" + input_file_name + "'...")
-    hash = calc_hash(input_file_name, cmd_line_args.hash_algo)
+    hash = calc_hash(input_file_name, cmd_line_args.hash_algo, cmd_line_args.suppress_output)
     if (type(hash) is int):
         # This is exit code
         return hash

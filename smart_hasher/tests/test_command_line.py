@@ -4,6 +4,8 @@ import subprocess
 import os
 import shutil
 import filecmp
+import asyncio
+import tracemalloc
 
 class SimpleCommandLineTestCase(unittest.TestCase):
     """This class contains testing simple functionality from command line"""
@@ -33,12 +35,13 @@ class SimpleCommandLineTestCase(unittest.TestCase):
 
         os.system(f'smart_hasher --input-folder {self.work_path} --suppress-output')
         
-        sha1_expected_file = open(f'{self.data_path}/file1.txt.sha1', mode='r')
-        sha1_expected = sha1_expected_file.read()
+        with open(f'{self.data_path}/file1.txt.sha1', mode='r') as sha1_expected_file:
+            sha1_expected = sha1_expected_file.read()
 
-        sha1_actual_file = open(f'{self.work_path}/file1.txt.sha1', mode='r')
-        sha1_actual = sha1_actual_file.read()
+        with open(f'{self.work_path}/file1.txt.sha1', mode='r') as sha1_actual_file:
+            sha1_actual = sha1_actual_file.read()
         sha1_actual = sha1_actual[:40]
+
         self.assertEqual(sha1_expected, sha1_actual, f'Wrong sha1-hash for file "file1.txt". Expected: "{sha1_expected}", actual: "{sha1_actual}"')
 
     def test_calc_hash_for_one_small_file_md5(self):
@@ -46,11 +49,11 @@ class SimpleCommandLineTestCase(unittest.TestCase):
 
         os.system(f'smart_hasher --input-folder {self.work_path} --hash-algo md5 --suppress-output')
         
-        md5_expected_file = open(f'{self.data_path}/file1.txt.md5', mode='r')
-        md5_expected = md5_expected_file.read()
+        with open(f'{self.data_path}/file1.txt.md5', mode='r') as md5_expected_file:
+            md5_expected = md5_expected_file.read()
 
-        md5_actual_file = open(f'{self.work_path}/file1.txt.md5', mode='r')
-        md5_actual = md5_actual_file.read()
+        with open(f'{self.work_path}/file1.txt.md5', mode='r') as md5_actual_file:
+            md5_actual = md5_actual_file.read()
         md5_actual = md5_actual[:32]
         self.assertEqual(md5_expected, md5_actual, f'Wrong md5-hash for file "file1.txt". Expected: "{md5_expected}", actual: "{md5_actual}"')
 
@@ -61,11 +64,11 @@ class SimpleCommandLineTestCase(unittest.TestCase):
         os.system(f'smart_hasher --input-folder {self.work_path} --suppress-output')
         
         for i in range(1, 4):
-            sha1_expected_file = open(f'{self.data_path}/file{i}.txt.sha1', mode='r')
-            sha1_expected = sha1_expected_file.read()
+            with open(f'{self.data_path}/file{i}.txt.sha1', mode='r') as sha1_expected_file:
+                sha1_expected = sha1_expected_file.read()
 
-            sha1_actual_file = open(f'{self.work_path}/file{i}.txt.sha1', mode='r')
-            sha1_actual = sha1_actual_file.read()
+            with open(f'{self.work_path}/file{i}.txt.sha1', mode='r') as sha1_actual_file:
+                sha1_actual = sha1_actual_file.read()
             sha1_actual = sha1_actual[:40]
             with self.subTest(i = i):
                 self.assertEqual(sha1_expected, sha1_actual, f'Wrong sha1-hash for file "file{i}.txt". Expected: "{sha1_expected}", actual: "{sha1_actual}"')
@@ -77,17 +80,43 @@ class SimpleCommandLineTestCase(unittest.TestCase):
         os.system(f'smart_hasher --input-folder {self.work_path} --hash-algo md5 --suppress-output')
         
         for i in range(1, 4):
-            md5_expected_file = open(f'{self.data_path}/file{i}.txt.md5', mode='r')
-            md5_expected = md5_expected_file.read()
+            with open(f'{self.data_path}/file{i}.txt.md5', mode='r') as md5_expected_file:
+                md5_expected = md5_expected_file.read()
 
-            md5_actual_file = open(f'{self.work_path}/file{i}.txt.md5', mode='r')
-            md5_actual = md5_actual_file.read()
+            with open(f'{self.work_path}/file{i}.txt.md5', mode='r') as md5_actual_file:
+                md5_actual = md5_actual_file.read()
             md5_actual = md5_actual[:32]
             with self.subTest(i = i):
                 self.assertEqual(md5_expected, md5_actual, f'Wrong md5-hash for file "file{i}.txt". Expected: "{md5_expected}", actual: "{md5_actual}"')
 
+    @unittest.skip("This is sandbox, actually not unit test")
+    def _test_sandbox(self):
+        # Ref: https://docs.python.org/3/library/tracemalloc.html
+        tracemalloc.start()
+
+        print("test_dummy run")
+        shutil.copyfile(f'{self.data_path}/file1.txt', f'{self.work_path}/file1.txt')
+
+        os.system(f'smart_hasher --input-folder {self.work_path} --suppress-output')
+        
+        with open(f'{self.data_path}/file1.txt.sha1', mode='r') as sha1_expected_file:
+            sha1_expected = sha1_expected_file.read()
+
+        with open(f'{self.work_path}/file1.txt.sha1', mode='r') as  sha1_actual_file:
+            sha1_actual = sha1_actual_file.read()
+        sha1_actual = sha1_actual[:40]
+        self.assertEqual(sha1_expected, sha1_actual, f'Wrong sha1-hash for file "file1.txt". Expected: "{sha1_expected}", actual: "{sha1_actual}"')
+
+        snapshot = tracemalloc.take_snapshot()
+        top_stats = snapshot.statistics('lineno')
+
+        print("[ Top 10 ]")
+        for stat in top_stats[:10]:
+            print(stat)
+        print('^^^^^^^^^^^^^^ completed ^^^^^^^^^^^^^^^^^')
+
 if __name__ == '__main__':
-    run_single_test = True
+    run_single_test = False
     if run_single_test:
         # Run single test
         # https://docs.python.org/3/library/unittest.html#organizing-test-code
