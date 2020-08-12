@@ -31,7 +31,7 @@ class SimpleCommandLineTestCase(unittest.TestCase):
     def test_calc_hash_for_one_small_file_sha1(self):
         shutil.copyfile(f'{self.data_path}/file1.txt', f'{self.work_path}/file1.txt')
 
-        os.system(f'smart_hasher --input-folder {self.work_path}')
+        os.system(f'smart_hasher --input-folder {self.work_path} --suppress-output')
         
         sha1_expected_file = open(f'{self.data_path}/file1.txt.sha1', mode='r')
         sha1_expected = sha1_expected_file.read()
@@ -44,7 +44,7 @@ class SimpleCommandLineTestCase(unittest.TestCase):
     def test_calc_hash_for_one_small_file_md5(self):
         shutil.copyfile(f'{self.data_path}/file1.txt', f'{self.work_path}/file1.txt')
 
-        os.system(f'smart_hasher --input-folder {self.work_path} --hash-algo md5')
+        os.system(f'smart_hasher --input-folder {self.work_path} --hash-algo md5 --suppress-output')
         
         md5_expected_file = open(f'{self.data_path}/file1.txt.md5', mode='r')
         md5_expected = md5_expected_file.read()
@@ -58,7 +58,7 @@ class SimpleCommandLineTestCase(unittest.TestCase):
         for i in range(1, 4):
             shutil.copyfile(f'{self.data_path}/file{i}.txt', f'{self.work_path}/file{i}.txt')
 
-        os.system(f'smart_hasher --input-folder {self.work_path}')
+        os.system(f'smart_hasher --input-folder {self.work_path} --suppress-output')
         
         for i in range(1, 4):
             sha1_expected_file = open(f'{self.data_path}/file{i}.txt.sha1', mode='r')
@@ -74,7 +74,7 @@ class SimpleCommandLineTestCase(unittest.TestCase):
         for i in range(1, 4):
             shutil.copyfile(f'{self.data_path}/file{i}.txt', f'{self.work_path}/file{i}.txt')
 
-        os.system(f'smart_hasher --input-folder {self.work_path} --hash-algo md5')
+        os.system(f'smart_hasher --input-folder {self.work_path} --hash-algo md5 --suppress-output')
         
         for i in range(1, 4):
             md5_expected_file = open(f'{self.data_path}/file{i}.txt.md5', mode='r')
