@@ -126,7 +126,7 @@ def parse_command_line():
     parser.add_argument('--hash-file-name-output-postfix', '-op', action='append', help="Specify postfix, which will be appended to the end of output file names. This is to specify for different contextes, e.g. if file name ends with \".md5\", then it ends with \"md5.<value>\"")
     parser.add_argument('--hash-algo', help="Specify hash algo (default: {0})".format(hash_algo_default_str), default=hash_algo_default_str, choices=hash_algos)
     parser.add_argument('--pause-after-file', '-pf', help="Specify pause after every file handled, in seconds. Note, if file is skipped, then no pause applied", type=int)
-    parser.add_argument('--suppress-output', '-so', help="Suppress output to console", action="store_true")
+    parser.add_argument('--suppress-output', '-so', help="Suppress console output", action="store_true")
 
     # Ref: https://stackoverflow.com/questions/23032514/argparse-disable-same-argument-occurrences
     cmd_line_args = parser.parse_args()
