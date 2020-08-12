@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>8f5cbe6d-1ea6-4473-80bd-6a5afec4f524</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>tests\test_command_line.py</StartupFile>
+    <StartupFile>tests\test_general.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -30,14 +30,14 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="FileHashCalculator.py">
+    <Compile Include="hash_calc.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="smart_hasher.py" />
     <Compile Include="tests\test_command_line.py" />
     <Compile Include="tests\test_general.py" />
-    <Compile Include="tests\util.py" />
     <Compile Include="tests\__init__.py" />
+    <Compile Include="util.py" />
   </ItemGroup>
   <ItemGroup>
     <Interpreter Include="Python 3.4 (64-bit)\">

@@ -42,7 +42,7 @@ class SimpleInputsTestCase(unittest.TestCase):
             self.assertEqual(md5_expected, md5_actual)
 
 if __name__ == '__main__':
-    run_single_test = False
+    run_single_test = True
     if run_single_test:
         # Run single test
         # https://docs.python.org/3/library/unittest.html#organizing-test-code
