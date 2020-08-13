@@ -1,6 +1,7 @@
 import os
 import unittest
-import smart_hasher
+#import smart_hasher
+import hash_calc
 
 class SimpleInputsTestCase(unittest.TestCase):
     """This class contains testing simple functionality"""
@@ -15,30 +16,50 @@ class SimpleInputsTestCase(unittest.TestCase):
         # Ref: https://matthew-brett.github.io/teaching/string_formatting.html#option-2-f-strings-in-python-3-6
         file_name = f'{self.data_path}/file1.txt'
 
+        calc = hash_calc.FileHashCalc()
+        calc.file_name = file_name
+        calc.suppress_output = True
+
         with open(f'{self.data_path}/file1.txt.sha1', mode='r') as sha1_expected_file:
             sha1_expected = sha1_expected_file.read()
-        sha1_actual = smart_hasher.calc_hash(file_name, 'sha1', True)
-        #print(sha1_actual)
+
+        calc.hash_str = "sha1"
+        calc_res = calc.run()
+        self.assertEqual(calc_res, hash_calc.FileHashCalc.ReturnCode.OK)
+        sha1_actual = calc.result
         self.assertEqual(sha1_expected, sha1_actual)
 
         with open(f'{self.data_path}/file1.txt.md5', mode='r') as md5_expected_file:
             md5_expected = md5_expected_file.read()
-        md5_actual = smart_hasher.calc_hash(file_name, 'md5', True)
-        #print(md5_actual)
+
+        calc.hash_str = "md5"
+        calc_res = calc.run()
+        self.assertEqual(calc_res, hash_calc.FileHashCalc.ReturnCode.OK)
+        md5_actual = calc.result
         self.assertEqual(md5_expected, md5_actual)
 
     def test_calc_hash_for_three_small_files(self):
+        calc = hash_calc.FileHashCalc()
+        calc.suppress_output = True
+
         for i in range(1, 4):
             file_name = f'{self.data_path}/file{i}.txt'
+            calc.file_name = file_name
 
             with open(f'{self.data_path}/file{i}.txt.sha1', mode='r') as sha1_expected_file:
                 sha1_expected = sha1_expected_file.read()
-            sha1_actual = smart_hasher.calc_hash(file_name, 'sha1', True)
+            calc.hash_str = "sha1"
+            calc_res = calc.run()
+            self.assertEqual(calc_res, hash_calc.FileHashCalc.ReturnCode.OK)
+            sha1_actual = calc.result
             self.assertEqual(sha1_expected, sha1_actual)
 
             with open(f'{self.data_path}/file{i}.txt.md5', mode='r') as md5_expected_file:
                 md5_expected = md5_expected_file.read()
-            md5_actual = smart_hasher.calc_hash(file_name, 'md5', True)
+            calc.hash_str = "md5"
+            calc_res = calc.run()
+            self.assertEqual(calc_res, hash_calc.FileHashCalc.ReturnCode.OK)
+            md5_actual = calc.result
             self.assertEqual(md5_expected, md5_actual)
 
 if __name__ == '__main__':

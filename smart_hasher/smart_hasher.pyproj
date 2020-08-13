@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>8f5cbe6d-1ea6-4473-80bd-6a5afec4f524</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>tests\test_general.py</StartupFile>
+    <StartupFile>smart_hasher.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -13,8 +13,7 @@
     <RootNamespace>smart_hasher</RootNamespace>
     <IsWindowsApplication>False</IsWindowsApplication>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>
-    </CommandLineArguments>
+    <CommandLineArguments>-h</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <InterpreterId>MSBuild|Python 3.7 (32-bit)|$(MSBuildProjectFullPath)</InterpreterId>
     <TestFramework>unittest</TestFramework>

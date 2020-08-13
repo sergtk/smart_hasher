@@ -10,26 +10,26 @@ import fnmatch
 from collections import OrderedDict
 import hash_calc
 import util
+import enum
+import functools
 
-hash_algos = ("md5", "sha1", "sha224", "sha256", "sha384", "sha512");
-hash_algo_default_str = "sha1"
+# Code less than 7 are considered like OK, and program can continue execution
+# Ref: https://docs.python.org/3.7/library/enum.html
+@enum.unique
+@functools.total_ordering
+class ExitCode(enum.IntEnum):
+    OK = 0
+    OK_SKIPPED_ALREADY_CALCULATED = 2           # OK may return anyway if file(s) is skipped because the hash is already calculated.
+    FAILED = 7                                  # General failure, more specific information is not available.
+    PROGRAM_INTERRUPTED_BY_USER = 8
+    EXCEPTION_THROWN_ON_PROGRAM_EXECUTION = 9
 
-def format_seconds(seconds: float) -> str:
-    # seconds = int(diff.total_seconds());
-    sec = int(seconds)
-    ret =  "{0}:{1:02d}:{2:02d}".format(int(sec / 60 / 60), int(sec / 60) % 60, sec % 60)
-    return ret
-
-# Ref: https://stackoverflow.com/questions/9181859/getting-percentage-complete-of-an-md5-checksum
-def calc_hash(file_name, hash_str, suppress_output):
-    calc = hash_calc.FileHashCalc()
-    calc.file_name = file_name
-    calc.hash_str = hash_str
-    calc.suppress_output = suppress_output
-    ret = calc.run()
-    if ret != hash_calc.FileHashCalc.ReturnCode.OK:
-        raise Exception(f"Error on calculation hash: {ret}")
-    return calc.result
+    # Ref: https://stackoverflow.com/questions/39268052/how-to-compare-enums-in-python
+    # Ref: https://www.geeksforgeeks.org/operator-overloading-in-python/
+    def __lt__(self, other):
+        if self.__class__ is other.__class__:
+            return self.value < other.value
+        raise Exception("Incompartible arguments")
 
 def get_output_file_name(input_file_name):
     output_file_name = input_file_name + "." + cmd_line_args.hash_algo
@@ -43,13 +43,20 @@ def get_output_file_name(input_file_name):
 def parse_command_line():
     global cmd_line_args;
 
-    parser = argparse.ArgumentParser(description='This application is to calculate hashes of files with extended features.')
+    description = "This application is to calculate hashes of files with extended features: support of show progress, " \
+        "folders and file masks for multiple files, skip calculation of handled files etc...\n\n"
+    
+    description += "Application exit codes:\n"
+    for ec in ExitCode:
+        description += f"{ec} - {ec.name}\n";
+        #, formatter_class=argparse.RawTextHelpFormatter
+    parser = argparse.ArgumentParser(description=description, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--input-file', '-if', action="append", help="Specify one or more input files")
     parser.add_argument('--input-folder', '-ifo', action="append", help="Specify one or more input folders. All files in folder are handled recursively")
     parser.add_argument('--input-folder-file-mask-include', '-ifoi', help="Specify file mask to include for input folder. All files in the folder considered if not specified. Separate multiple masks with semicolon (;)")
     parser.add_argument('--input-folder-file-mask-exclude', '-ifoe', help="Specify file mask to exclude for input folder. It is applied after --input-folder-file-mask-include. Separate multiple masks with semicolon (;)")
     parser.add_argument('--hash-file-name-output-postfix', '-op', action='append', help="Specify postfix, which will be appended to the end of output file names. This is to specify for different contextes, e.g. if file name ends with \".md5\", then it ends with \"md5.<value>\"")
-    parser.add_argument('--hash-algo', help="Specify hash algo (default: {0})".format(hash_algo_default_str), default=hash_algo_default_str, choices=hash_algos)
+    parser.add_argument('--hash-algo', help="Specify hash algo (default: {0})".format(hash_calc.FileHashCalc.hash_algo_default_str), default=hash_calc.FileHashCalc.hash_algo_default_str, choices=hash_calc.FileHashCalc.hash_algos)
     parser.add_argument('--pause-after-file', '-pf', help="Specify pause after every file handled, in seconds. Note, if file is skipped, then no pause applied", type=int)
     parser.add_argument('--suppress-output', '-so', help="Suppress console output", action="store_true")
 
@@ -76,13 +83,20 @@ def handle_input_file(input_file_name):
     if (os.path.exists(output_file_name)):
         if not cmd_line_args.suppress_output:
             print("Output file name '" + output_file_name + "' exists ... calculation of hash skipped.\n")
-            return 2
+            return ExitCode.OK_SKIPPED_ALREADY_CALCULATED
     if not cmd_line_args.suppress_output:
         print("Calculate hash for file '" + input_file_name + "'...")
-    hash = calc_hash(input_file_name, cmd_line_args.hash_algo, cmd_line_args.suppress_output)
-    if (type(hash) is int):
-        # This is exit code
-        return hash
+
+    calc = hash_calc.FileHashCalc()
+    calc.file_name = input_file_name
+    calc.hash_str = cmd_line_args.hash_algo
+    calc.suppress_output = cmd_line_args.suppress_output
+    calc_res = calc.run()
+    if calc_res != hash_calc.FileHashCalc.ReturnCode.OK:
+        if calc_res == hash_calc.FileHashCalc.ReturnCode.PROGRAM_INTERRUPTED_BY_USER:
+            return ExitCode.PROGRAM_INTERRUPTED_BY_USER
+        raise Exception(f"Error on calculation of the hash: {calc_res}")
+    hash = calc.result
 
     # Ref: https://stackoverflow.com/questions/6159900/correct-way-to-write-line-to-file
     with open(output_file_name, 'a') as outputFile:
@@ -101,14 +115,14 @@ def handle_input_file(input_file_name):
     file_size = os.path.getsize(input_file_name)
     speed = file_size / seconds if seconds > 0 else 0
     if not cmd_line_args.suppress_output:
-        print("Elapsed time: {0} (Average speed: {1}/sec)\n".format(format_seconds(seconds), util.convert_size_to_display(speed)))
+        print("Elapsed time: {0} (Average speed: {1}/sec)\n".format(util.format_seconds(seconds), util.convert_size_to_display(speed)))
      
     if (cmd_line_args.pause_after_file):
         if not util.pause():
             # Return specific error code
-            return 8
+            return ExitCode.PROGRAM_INTERRUPTED_BY_USER
 
-    return 0
+    return ExitCode.OK
 
 def file_masks_included(file_name):
     # Ref: "Extract file name from path, no matter what the os/path format" https://stackoverflow.com/a/8384788/13441
@@ -166,10 +180,10 @@ def handle_input_files():
 
         input_file_name = input_file_names[fi]
         h = handle_input_file(input_file_name)
-        if h > 2:
+        if h >= ExitCode.FAILED:
             return h
 
-    return 0;
+    return ExitCode.OK
 
 try:
 
@@ -178,7 +192,7 @@ try:
     
         e = handle_input_files()
         #print("e = {0}".format(e))
-        exit(e)
+        exit(int(e))
 
 except Exception as ex:
     # Ref: https://stackoverflow.com/a/4564595/13441
@@ -187,3 +201,5 @@ except Exception as ex:
 
     # Short message
     # print("Exception thrown:\n", ex)
+
+    exit(int(ExitCode.EXCEPTION_THROWN_ON_PROGRAM_EXECUTION))

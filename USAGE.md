@@ -7,7 +7,14 @@
                            [--pause-after-file PAUSE_AFTER_FILE]
                            [--suppress-output]
 
-    This application is to calculate hashes of files with extended features.
+    This application is to calculate hashes of files with extended features: support of show progress, folders and file masks for multiple files, skip calculation of handled files etc...
+
+    Application exit codes:
+    0 - OK
+    2 - OK_SKIPPED_ALREADY_CALCULATED
+    7 - FAILED
+    8 - PROGRAM_INTERRUPTED_BY_USER
+    9 - EXCEPTION_THROWN_ON_PROGRAM_EXECUTION
 
     optional arguments:
       -h, --help            show this help message and exit

@@ -45,3 +45,9 @@ def pause():
             return False;
     print(" " * 60)
     return True;
+
+def format_seconds(seconds: float) -> str:
+    # seconds = int(diff.total_seconds());
+    sec = int(seconds)
+    ret =  "{0}:{1:02d}:{2:02d}".format(int(sec / 60 / 60), int(sec / 60) % 60, sec % 60)
+    return ret

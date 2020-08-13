@@ -7,10 +7,13 @@ import enum
 class FileHashCalc(object):
     """This is a class to calculate hash for one file"""
 
+    hash_algos = ("md5", "sha1", "sha224", "sha256", "sha384", "sha512");
+    hash_algo_default_str = "sha1"
+
     def __init__(self):
         self.retry_count_on_failure = 3
         self.file_name = None
-        self.hash_str = "sha1"
+        self.hash_str = FileHashCalc.hash_algo_default_str
         self.suppress_output = False
         self.file_chunk_size = 1024 * 1024
         self.result = None
@@ -23,10 +26,11 @@ class FileHashCalc(object):
 
     # Ref: https://docs.python.org/3.7/library/enum.html
     @enum.unique
-    class ReturnCode(enum.Enum):
+    class ReturnCode(enum.IntEnum):
         OK = 0
-        PROGRAM_INTERRUPTED_BY_USER = 1
+        PROGRAM_INTERRUPTED_BY_USER = 8
 
+    # Ref: https://stackoverflow.com/questions/9181859/getting-percentage-complete-of-an-md5-checksum
     def run(self):
         if self.file_name is None:
             raise Exception("File name is not specified")
@@ -81,7 +85,7 @@ class FileHashCalc(object):
                         # Ref: "Using multiple arguments for string formatting in Python (e.g., '%s … %s')" https://stackoverflow.com/a/3395158/13441
                         # Ref: "Display number with leading zeros" https://stackoverflow.com/a/134951/13441
                         print ('{0}.{1:02d}% done ({2:,d} bytes). Remaining time: {3}. File average speed: {4}/sec. Recent speed: {5}/sec.   \r'.
-                               format(int(percent / 100), int(percent % 100), cur_size, format_seconds(remain_seconds), speed_readable, recent_speed_readable),
+                               format(int(percent / 100), int(percent % 100), cur_size, util.format_seconds(remain_seconds), speed_readable, recent_speed_readable),
                                end="")
                     prev_percent = percent
         if not self.suppress_output:
