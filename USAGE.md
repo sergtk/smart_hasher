@@ -4,17 +4,21 @@
                            [--input-folder-file-mask-exclude INPUT_FOLDER_FILE_MASK_EXCLUDE]
                            [--hash-file-name-output-postfix HASH_FILE_NAME_OUTPUT_POSTFIX]
                            [--hash-algo {md5,sha1,sha224,sha256,sha384,sha512}]
-                           [--pause-after-file PAUSE_AFTER_FILE]
                            [--suppress-output]
+                           [--pause-after-file PAUSE_AFTER_FILE]
+                           [--retry-count-on-data-read-error RETRY_COUNT_ON_DATA_READ_ERROR]
+                           [--retry-pause-on-data-read-error RETRY_PAUSE_ON_DATA_READ_ERROR]
 
-    This application is to calculate hashes of files with extended features: support of show progress, folders and file masks for multiple files, skip calculation of handled files etc...
+    This application is to calculate hashes of files with extended features: support of show progress,
+    folders and file masks for multiple files, skip calculation of handled files etc...
 
     Application exit codes:
-    0 - OK
-    2 - OK_SKIPPED_ALREADY_CALCULATED
-    7 - FAILED
-    8 - PROGRAM_INTERRUPTED_BY_USER
-    9 - EXCEPTION_THROWN_ON_PROGRAM_EXECUTION
+     0 - OK: everthing fine. Program executed successfully
+     2 - OK_SKIPPED_ALREADY_CALCULATED: everything fine. OK may be returned anyway if file(s) is skipped because the hash is already calculated.
+     7 - FAILED: general failure, more specific information is not available.
+     8 - PROGRAM_INTERRUPTED_BY_USER
+     9 - DATA_READ_ERROR: there was error(s) when reading some file(s). Probably hash is not calculated for all files
+    10 - EXCEPTION_THROWN_ON_PROGRAM_EXECUTION
 
     optional arguments:
       -h, --help            show this help message and exit
@@ -38,8 +42,14 @@
                             ends with "md5.<value>"
       --hash-algo {md5,sha1,sha224,sha256,sha384,sha512}
                             Specify hash algo (default: sha1)
+      --suppress-output, -so
+                            Suppress console output
       --pause-after-file PAUSE_AFTER_FILE, -pf PAUSE_AFTER_FILE
                             Specify pause after every file handled, in seconds.
                             Note, if file is skipped, then no pause applied
-      --suppress-output, -so
-                            Suppress console output
+      --retry-count-on-data-read-error RETRY_COUNT_ON_DATA_READ_ERROR
+                            Specify count of retries on data read error (default:
+                            5)
+      --retry-pause-on-data-read-error RETRY_PAUSE_ON_DATA_READ_ERROR
+                            Specify pause before retrying on data read error
+                            (default: 30)

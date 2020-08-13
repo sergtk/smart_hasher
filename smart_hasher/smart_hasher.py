@@ -55,7 +55,7 @@ def parse_command_line():
     global cmd_line_args;
 
     # Ref: https://developer.rhino3d.com/guides/rhinopython/python-statements/
-    description = "This application is to calculate hashes of files with extended features: support of show progress, " \
+    description = "This application is to calculate hashes of files with extended features: support of show progress,\n" \
         "folders and file masks for multiple files, skip calculation of handled files etc...\n\n"
     
     description += "Application exit codes:\n"
