@@ -89,7 +89,11 @@ class SimpleCommandLineTestCase(unittest.TestCase):
             with self.subTest(i = i):
                 self.assertEqual(md5_expected, md5_actual, f'Wrong md5-hash for file "file{i}.txt". Expected: "{md5_expected}", actual: "{md5_actual}"')
 
-    @unittest.skip("This is sandbox, actually not unit test")
+    def test_specify_non_existent_file(self):
+        exit_code = os.system(f'smart_hasher --input-file {self.work_path}/nofile.txt --suppress-output --retry-pause-on-data-read-error 0')
+        self.assertEqual(smart_hasher.ExitCode(exit_code), smart_hasher.ExitCode.DATA_READ_ERROR)
+
+    #@unittest.skip("This is sandbox, actually not unit test")
     def _test_sandbox(self):
         # Ref: https://docs.python.org/3/library/tracemalloc.html
         tracemalloc.start()
@@ -121,7 +125,7 @@ if __name__ == '__main__':
         # Run single test
         # https://docs.python.org/3/library/unittest.html#organizing-test-code
         suite = unittest.TestSuite()
-        suite.addTest(SimpleCommandLineTestCase('test_calc_hash_for_one_small_file_sha1'))
+        suite.addTest(SimpleCommandLineTestCase('test_specify_non_existent_file'))
         runner = unittest.TextTestRunner()
         runner.run(suite)
     else:

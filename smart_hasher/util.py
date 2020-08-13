@@ -45,7 +45,8 @@ def pause(pause_duration = 30):
         pi = is_program_interrupted_by_user()
         if pi:
             return False;
-    print(" " * 60)
+    if pause_duration > 0:
+        print(" " * 60)
     return True;
 
 def format_seconds(seconds: float) -> str:

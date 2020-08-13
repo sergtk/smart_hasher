@@ -34,6 +34,11 @@ class FileHashCalc(object):
         PROGRAM_INTERRUPTED_BY_USER = 8
         DATA_READ_ERROR = 9
 
+    def _print(self, str="", end="\n"):
+        if (self.suppress_output):
+            return
+        print(str, end=end)
+
     # Ref: https://stackoverflow.com/questions/9181859/getting-percentage-complete-of-an-md5-checksum
     def run_single(self):
         if self.file_name is None:
@@ -92,19 +97,17 @@ class FileHashCalc(object):
                         recent_moment = cur_moment
                         recent_size = 0
 
-                    if not self.suppress_output:
-                        # Ref: "Using multiple arguments for string formatting in Python (e.g., '%s … %s')" https://stackoverflow.com/a/3395158/13441
-                        # Ref: "Display number with leading zeros" https://stackoverflow.com/a/134951/13441
-                        con_report = '{0}.{1:02d}% done ({2:,d} bytes). Remaining time: {3}. File average speed: {4}/sec. Recent speed: {5}/sec.'. \
-                               format(int(percent / 100), int(percent % 100), cur_size, util.format_seconds(remain_seconds), speed_readable, recent_speed_readable);
-                        con_report_len_new = len(con_report)
-                        if con_report_len_new < con_report_len:
-                            con_report += " " * (con_report_len - con_report_len_new)
-                        con_report_len = con_report_len_new
-                        print (f"{con_report}\r", end="")
+                    # Ref: "Using multiple arguments for string formatting in Python (e.g., '%s … %s')" https://stackoverflow.com/a/3395158/13441
+                    # Ref: "Display number with leading zeros" https://stackoverflow.com/a/134951/13441
+                    con_report = '{0}.{1:02d}% done ({2:,d} bytes). Remaining time: {3}. File average speed: {4}/sec. Recent speed: {5}/sec.'. \
+                            format(int(percent / 100), int(percent % 100), cur_size, util.format_seconds(remain_seconds), speed_readable, recent_speed_readable);
+                    con_report_len_new = len(con_report)
+                    if con_report_len_new < con_report_len:
+                        con_report += " " * (con_report_len - con_report_len_new)
+                    con_report_len = con_report_len_new
+                    self._print(f"{con_report}\r", end="")
                     prev_percent = percent
-        if not self.suppress_output:
-            print(" " * con_report_len + "\r", end="") # Clear line
+        self._print(" " * con_report_len + "\r", end="") # Clear line
         self.result = hasher.hexdigest()
         return self.ReturnCode.OK
 
@@ -115,12 +118,12 @@ class FileHashCalc(object):
                 res = self.run_single()
                 return res
             except OSError as err:
-                print()
-                print(f"OS Error. {type(err)}: {err.strerror} (errno = {err.errno}, filename = {err.filename})")
+                self._print()
+                self._print(f"OS Error. {type(err)}: {err.strerror} (errno = {err.errno}, filename = {err.filename})")
                 if (not util.pause(self.retry_pause_on_data_read_error)):
                     return self.ReturnCode.PROGRAM_INTERRUPTED_BY_USER
                 if cur_try < self.retry_count_on_data_read_error:
-                    print(f"Retry {cur_try + 1} of {self.retry_count_on_data_read_error}...")
+                    self._print(f"Retry {cur_try + 1} of {self.retry_count_on_data_read_error}...")
                 else:
-                    print(f"Skip file.")
+                    self._print(f"Skip file.")
                     return self.ReturnCode.DATA_READ_ERROR

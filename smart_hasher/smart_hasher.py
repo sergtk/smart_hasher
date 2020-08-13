@@ -78,8 +78,8 @@ def parse_command_line():
     parser.add_argument('--hash-algo', help=f"Specify hash algo (default: {hash_calc.FileHashCalc.hash_algo_default_str})", default=hash_calc.FileHashCalc.hash_algo_default_str, choices=hash_calc.FileHashCalc.hash_algos)
     parser.add_argument('--suppress-output', '-so', help="Suppress console output", action="store_true")
     parser.add_argument('--pause-after-file', '-pf', help="Specify pause after every file handled, in seconds. Note, if file is skipped, then no pause applied", type=int)
-    parser.add_argument('--retry-count-on-data-read-error', help=f"Specify count of retries on data read error (default: {calc.retry_count_on_data_read_error})", default=calc.retry_count_on_data_read_error)
-    parser.add_argument('--retry-pause-on-data-read-error', help=f"Specify pause before retrying on data read error (default: {calc.retry_pause_on_data_read_error})", default=calc.retry_pause_on_data_read_error)
+    parser.add_argument('--retry-count-on-data-read-error', help=f"Specify count of retries on data read error (default: {calc.retry_count_on_data_read_error})", default=calc.retry_count_on_data_read_error, type=int)
+    parser.add_argument('--retry-pause-on-data-read-error', help=f"Specify pause before retrying on data read error (default: {calc.retry_pause_on_data_read_error})", default=calc.retry_pause_on_data_read_error, type=int)
 
     # Ref: https://stackoverflow.com/questions/23032514/argparse-disable-same-argument-occurrences
     cmd_line_args = parser.parse_args()
