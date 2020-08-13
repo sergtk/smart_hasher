@@ -20,10 +20,11 @@ import functools
 @functools.total_ordering
 class ExitCode(enum.IntEnum):
     OK = 0
-    OK_SKIPPED_ALREADY_CALCULATED = 2           # OK may return anyway if file(s) is skipped because the hash is already calculated.
-    FAILED = 7                                  # General failure, more specific information is not available.
+    OK_SKIPPED_ALREADY_CALCULATED = 2
+    FAILED = 7
     PROGRAM_INTERRUPTED_BY_USER = 8
-    EXCEPTION_THROWN_ON_PROGRAM_EXECUTION = 9
+    DATA_READ_ERROR = 9
+    EXCEPTION_THROWN_ON_PROGRAM_EXECUTION = 10
 
     # Ref: https://stackoverflow.com/questions/39268052/how-to-compare-enums-in-python
     # Ref: https://www.geeksforgeeks.org/operator-overloading-in-python/
@@ -31,6 +32,15 @@ class ExitCode(enum.IntEnum):
         if self.__class__ is other.__class__:
             return self.value < other.value
         raise Exception("Incompartible arguments")
+
+exit_code_descriptions = {
+    ExitCode.OK:                                "everthing fine. Program executed successfully",
+    ExitCode.OK_SKIPPED_ALREADY_CALCULATED:     "everything fine. OK may be returned anyway if file(s) is skipped because the hash is already calculated.",
+    ExitCode.FAILED:                            "general failure, more specific information is not available.",
+    # ExitCode.PROGRAM_INTERRUPTED_BY_USER: "",
+    ExitCode.DATA_READ_ERROR:                   "there was error(s) when reading some file(s). Probably hash is not calculated for all files",
+    # ExitCode.EXCEPTION_THROWN_ON_PROGRAM_EXECUTION: "",
+}
 
 def get_output_file_name(input_file_name):
     output_file_name = input_file_name + "." + cmd_line_args.hash_algo
@@ -50,7 +60,11 @@ def parse_command_line():
     
     description += "Application exit codes:\n"
     for ec in ExitCode:
-        description += f"{ec} - {ec.name}\n";
+        description += f"{ec:2} - {ec.name}"
+        code_desc = exit_code_descriptions.get(ec)
+        if (code_desc is not None):
+            description += f": {code_desc}"
+        description += "\n"
 
     # Ref: https://www.programcreek.com/python/example/6706/argparse.RawDescriptionHelpFormatter
     parser = argparse.ArgumentParser(description=description, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -98,7 +112,10 @@ def handle_input_file(input_file_name):
     if calc_res != hash_calc.FileHashCalc.ReturnCode.OK:
         if calc_res == hash_calc.FileHashCalc.ReturnCode.PROGRAM_INTERRUPTED_BY_USER:
             return ExitCode.PROGRAM_INTERRUPTED_BY_USER
-        raise Exception(f"Error on calculation of the hash: {calc_res}")
+        elif calc_res == hash_calc.FileHashCalc.ReturnCode.DATA_READ_ERROR:
+            return ExitCode.DATA_READ_ERROR
+        else:
+            raise Exception(f"Error on calculation of the hash: {calc_res}")
     hash = calc.result
 
     # Ref: https://stackoverflow.com/questions/6159900/correct-way-to-write-line-to-file
@@ -120,8 +137,8 @@ def handle_input_file(input_file_name):
     if not cmd_line_args.suppress_output:
         print("Elapsed time: {0} (Average speed: {1}/sec)\n".format(util.format_seconds(seconds), util.convert_size_to_display(speed)))
      
-    if (cmd_line_args.pause_after_file):
-        if not util.pause():
+    if (cmd_line_args.pause_after_file is not None):
+        if not util.pause(cmd_line_args.pause_after_file):
             # Return specific error code
             return ExitCode.PROGRAM_INTERRUPTED_BY_USER
 
@@ -176,6 +193,8 @@ def handle_input_files():
     input_file_names = list(dict.fromkeys(input_file_names))
     input_file_names.sort()
 
+    data_read_error = False
+
     file_count = len(input_file_names)
     for fi in range(0, file_count):
         if not cmd_line_args.suppress_output:
@@ -183,9 +202,14 @@ def handle_input_files():
 
         input_file_name = input_file_names[fi]
         h = handle_input_file(input_file_name)
-        if h >= ExitCode.FAILED:
+
+        if h == ExitCode.DATA_READ_ERROR:
+            data_read_error = True
+        elif h >= ExitCode.FAILED:
             return h
 
+    if data_read_error:
+        return ExitCode.DATA_READ_ERROR
     return ExitCode.OK
 
 try:

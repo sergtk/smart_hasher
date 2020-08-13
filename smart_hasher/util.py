@@ -1,5 +1,6 @@
 import msvcrt
 import math
+import time
 
 # Ref: https://en.wikipedia.org/wiki/Megabyte
 size_names = ("B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB")
@@ -29,13 +30,14 @@ def is_program_interrupted_by_user():
                 return True
     return False
 
+# pause_duration - duration of pause, seconds.
 # Returns:
 #   True if pause worked fine
 #   False if program interruped
-def pause():
+def pause(pause_duration = 30):
     # Ref: https://wiki.python.org/moin/ForLoop
     # Ref: https://stackoverflow.com/questions/44834493/a-single-python-loop-from-zero-to-n-to-zero
-    for s in range(cmd_line_args.pause_after_file, 0, -1):
+    for s in range(pause_duration, 0, -1):
         print(f"Pause {s} seconds... Press ESC to exit program\r", end="")
         # Ref: https://www.journaldev.com/15797/python-time-sleep
         time.sleep(1)

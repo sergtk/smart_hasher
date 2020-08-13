@@ -13,12 +13,13 @@ class FileHashCalc(object):
     hash_algo_default_str = "sha1"
 
     def __init__(self):
-        self.retry_count_on_failure = 3
         self.file_name = None
         self.hash_str = FileHashCalc.hash_algo_default_str
         self.suppress_output = False
         self.file_chunk_size = 1024 * 1024
         self.result = None
+        self.retry_count_on_error = 5
+        self.retry_pause_on_error = 30
 
     # Ref: https://docs.python.org/2/library/hashlib.html
     def __get_hasher(self, hash_str):
@@ -31,9 +32,10 @@ class FileHashCalc(object):
     class ReturnCode(enum.IntEnum):
         OK = 0
         PROGRAM_INTERRUPTED_BY_USER = 8
+        DATA_READ_ERROR = 9
 
     # Ref: https://stackoverflow.com/questions/9181859/getting-percentage-complete-of-an-md5-checksum
-    def run(self):
+    def run_single(self):
         if self.file_name is None:
             raise Exception("File name is not specified")
 
@@ -53,6 +55,7 @@ class FileHashCalc(object):
         with open(self.file_name, "rb") as f:
             while data:
                 #time.sleep(random.random())
+                #time.sleep(0.3)
                 # Read and update digest.
                 data = f.read(self.file_chunk_size)
                 cur_size += len(data)
@@ -62,6 +65,9 @@ class FileHashCalc(object):
 
                 # Calculate progress.
                 percent = int(10000 * cur_size / total_size)
+
+                #if percent > 1000:
+                #    raise OSError(10, "Dummy error", "dummfilename.txt")
 
                 if util.is_program_interrupted_by_user():
                     return self.ReturnCode.PROGRAM_INTERRUPTED_BY_USER
@@ -101,3 +107,20 @@ class FileHashCalc(object):
             print(" " * con_report_len + "\r", end="") # Clear line
         self.result = hasher.hexdigest()
         return self.ReturnCode.OK
+
+    def run(self):
+        for cur_try in range(1, self.retry_count_on_error + 1):
+            # Ref: https://stackoverflow.com/questions/2083987/how-to-retry-after-exception
+            try:
+                res = self.run_single()
+                return res
+            except OSError as err:
+                print()
+                print(f"OS Error. {type(err)}: {err.strerror} (errno = {err.errno}, filename = {err.filename})")
+                if (not util.pause(self.retry_pause_on_error)):
+                    return self.ReturnCode.PROGRAM_INTERRUPTED_BY_USER
+                if cur_try < self.retry_count_on_error:
+                    print(f"Retry {cur_try + 1} of {self.retry_count_on_error}...")
+                else:
+                    print(f"Skip file.")
+                    return self.ReturnCode.DATA_READ_ERROR
