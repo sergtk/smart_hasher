@@ -15,6 +15,7 @@ import functools
 
 # Code less than 7 are considered like OK, and program can continue execution
 # Ref: https://docs.python.org/3.7/library/enum.html
+# Ref: https://stackoverflow.com/questions/6060635/convert-enum-to-int-in-python
 @enum.unique
 @functools.total_ordering
 class ExitCode(enum.IntEnum):
@@ -43,13 +44,15 @@ def get_output_file_name(input_file_name):
 def parse_command_line():
     global cmd_line_args;
 
+    # Ref: https://developer.rhino3d.com/guides/rhinopython/python-statements/
     description = "This application is to calculate hashes of files with extended features: support of show progress, " \
         "folders and file masks for multiple files, skip calculation of handled files etc...\n\n"
     
     description += "Application exit codes:\n"
     for ec in ExitCode:
         description += f"{ec} - {ec.name}\n";
-        #, formatter_class=argparse.RawTextHelpFormatter
+
+    # Ref: https://www.programcreek.com/python/example/6706/argparse.RawDescriptionHelpFormatter
     parser = argparse.ArgumentParser(description=description, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--input-file', '-if', action="append", help="Specify one or more input files")
     parser.add_argument('--input-folder', '-ifo', action="append", help="Specify one or more input folders. All files in folder are handled recursively")

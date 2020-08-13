@@ -3,6 +3,8 @@ import os
 from datetime import datetime
 import util
 import enum
+import time
+import random
 
 class FileHashCalc(object):
     """This is a class to calculate hash for one file"""
@@ -44,10 +46,13 @@ class FileHashCalc(object):
         recent_size = 0
         recent_speed = 0
         recent_speed_readable = "-"
+        
+        con_report_len = 0
 
         data = True
         with open(self.file_name, "rb") as f:
             while data:
+                #time.sleep(random.random())
                 # Read and update digest.
                 data = f.read(self.file_chunk_size)
                 cur_size += len(data)
@@ -84,11 +89,15 @@ class FileHashCalc(object):
                     if not self.suppress_output:
                         # Ref: "Using multiple arguments for string formatting in Python (e.g., '%s … %s')" https://stackoverflow.com/a/3395158/13441
                         # Ref: "Display number with leading zeros" https://stackoverflow.com/a/134951/13441
-                        print ('{0}.{1:02d}% done ({2:,d} bytes). Remaining time: {3}. File average speed: {4}/sec. Recent speed: {5}/sec.   \r'.
-                               format(int(percent / 100), int(percent % 100), cur_size, util.format_seconds(remain_seconds), speed_readable, recent_speed_readable),
-                               end="")
+                        con_report = '{0}.{1:02d}% done ({2:,d} bytes). Remaining time: {3}. File average speed: {4}/sec. Recent speed: {5}/sec.'. \
+                               format(int(percent / 100), int(percent % 100), cur_size, util.format_seconds(remain_seconds), speed_readable, recent_speed_readable);
+                        con_report_len_new = len(con_report)
+                        if con_report_len_new < con_report_len:
+                            con_report += " " * (con_report_len - con_report_len_new)
+                        con_report_len = con_report_len_new
+                        print (f"{con_report}\r", end="")
                     prev_percent = percent
         if not self.suppress_output:
-            print ('                                                                                      \r', end="") # Clear line
+            print(" " * con_report_len + "\r", end="") # Clear line
         self.result = hasher.hexdigest()
         return self.ReturnCode.OK
