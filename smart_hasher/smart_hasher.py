@@ -66,6 +66,8 @@ def parse_command_line():
             description += f": {code_desc}"
         description += "\n"
 
+    calc = hash_calc.FileHashCalc()
+
     # Ref: https://www.programcreek.com/python/example/6706/argparse.RawDescriptionHelpFormatter
     parser = argparse.ArgumentParser(description=description, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--input-file', '-if', action="append", help="Specify one or more input files")
@@ -73,9 +75,11 @@ def parse_command_line():
     parser.add_argument('--input-folder-file-mask-include', '-ifoi', help="Specify file mask to include for input folder. All files in the folder considered if not specified. Separate multiple masks with semicolon (;)")
     parser.add_argument('--input-folder-file-mask-exclude', '-ifoe', help="Specify file mask to exclude for input folder. It is applied after --input-folder-file-mask-include. Separate multiple masks with semicolon (;)")
     parser.add_argument('--hash-file-name-output-postfix', '-op', action='append', help="Specify postfix, which will be appended to the end of output file names. This is to specify for different contextes, e.g. if file name ends with \".md5\", then it ends with \"md5.<value>\"")
-    parser.add_argument('--hash-algo', help="Specify hash algo (default: {0})".format(hash_calc.FileHashCalc.hash_algo_default_str), default=hash_calc.FileHashCalc.hash_algo_default_str, choices=hash_calc.FileHashCalc.hash_algos)
-    parser.add_argument('--pause-after-file', '-pf', help="Specify pause after every file handled, in seconds. Note, if file is skipped, then no pause applied", type=int)
+    parser.add_argument('--hash-algo', help=f"Specify hash algo (default: {hash_calc.FileHashCalc.hash_algo_default_str})", default=hash_calc.FileHashCalc.hash_algo_default_str, choices=hash_calc.FileHashCalc.hash_algos)
     parser.add_argument('--suppress-output', '-so', help="Suppress console output", action="store_true")
+    parser.add_argument('--pause-after-file', '-pf', help="Specify pause after every file handled, in seconds. Note, if file is skipped, then no pause applied", type=int)
+    parser.add_argument('--retry-count-on-data-read-error', help=f"Specify count of retries on data read error (default: {calc.retry_count_on_data_read_error})", default=calc.retry_count_on_data_read_error)
+    parser.add_argument('--retry-pause-on-data-read-error', help=f"Specify pause before retrying on data read error (default: {calc.retry_pause_on_data_read_error})", default=calc.retry_pause_on_data_read_error)
 
     # Ref: https://stackoverflow.com/questions/23032514/argparse-disable-same-argument-occurrences
     cmd_line_args = parser.parse_args()
@@ -108,6 +112,9 @@ def handle_input_file(input_file_name):
     calc.file_name = input_file_name
     calc.hash_str = cmd_line_args.hash_algo
     calc.suppress_output = cmd_line_args.suppress_output
+    calc.retry_count_on_data_read_error = cmd_line_args.retry_count_on_data_read_error;
+    calc.retry_pause_on_data_read_error = cmd_line_args.retry_pause_on_data_read_error;
+
     calc_res = calc.run()
     if calc_res != hash_calc.FileHashCalc.ReturnCode.OK:
         if calc_res == hash_calc.FileHashCalc.ReturnCode.PROGRAM_INTERRUPTED_BY_USER:

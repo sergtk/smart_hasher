@@ -18,8 +18,8 @@ class FileHashCalc(object):
         self.suppress_output = False
         self.file_chunk_size = 1024 * 1024
         self.result = None
-        self.retry_count_on_error = 5
-        self.retry_pause_on_error = 30
+        self.retry_count_on_data_read_error = 5
+        self.retry_pause_on_data_read_error = 30
 
     # Ref: https://docs.python.org/2/library/hashlib.html
     def __get_hasher(self, hash_str):
@@ -109,7 +109,7 @@ class FileHashCalc(object):
         return self.ReturnCode.OK
 
     def run(self):
-        for cur_try in range(1, self.retry_count_on_error + 1):
+        for cur_try in range(1, self.retry_count_on_data_read_error + 1):
             # Ref: https://stackoverflow.com/questions/2083987/how-to-retry-after-exception
             try:
                 res = self.run_single()
@@ -117,10 +117,10 @@ class FileHashCalc(object):
             except OSError as err:
                 print()
                 print(f"OS Error. {type(err)}: {err.strerror} (errno = {err.errno}, filename = {err.filename})")
-                if (not util.pause(self.retry_pause_on_error)):
+                if (not util.pause(self.retry_pause_on_data_read_error)):
                     return self.ReturnCode.PROGRAM_INTERRUPTED_BY_USER
-                if cur_try < self.retry_count_on_error:
-                    print(f"Retry {cur_try + 1} of {self.retry_count_on_error}...")
+                if cur_try < self.retry_count_on_data_read_error:
+                    print(f"Retry {cur_try + 1} of {self.retry_count_on_data_read_error}...")
                 else:
                     print(f"Skip file.")
                     return self.ReturnCode.DATA_READ_ERROR
