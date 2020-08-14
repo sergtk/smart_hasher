@@ -125,5 +125,5 @@ class FileHashCalc(object):
                 if cur_try < self.retry_count_on_data_read_error:
                     self._print(f"Retry {cur_try + 1} of {self.retry_count_on_data_read_error}...")
                 else:
-                    self._print(f"Skip file.")
+                    self._print(f"Skip file. The hash for it can't be calculated due to the errors.")
                     return self.ReturnCode.DATA_READ_ERROR
