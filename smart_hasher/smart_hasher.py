@@ -24,6 +24,7 @@ class ExitCode(enum.IntEnum):
     PROGRAM_INTERRUPTED_BY_USER = 8
     DATA_READ_ERROR = 9
     EXCEPTION_THROWN_ON_PROGRAM_EXECUTION = 10
+    INVALID_COMMAND_LINE_PARAMETERS = 11
 
     # Ref: https://stackoverflow.com/questions/39268052/how-to-compare-enums-in-python
     # Ref: https://www.geeksforgeeks.org/operator-overloading-in-python/
@@ -67,29 +68,39 @@ def parse_command_line():
 
     calc = hash_calc.FileHashCalc()
 
-    # Ref: https://www.programcreek.com/python/example/6706/argparse.RawDescriptionHelpFormatter
-    parser = argparse.ArgumentParser(description=description, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('--input-file', '-if', action="append", help="Specify one or more input files")
-    parser.add_argument('--input-folder', '-ifo', action="append", help="Specify one or more input folders. All files in folder are handled recursively")
-    parser.add_argument('--input-folder-file-mask-include', '-ifoi', help="Specify file mask to include for input folder. All files in the folder considered if not specified. Separate multiple masks with semicolon (;)")
-    parser.add_argument('--input-folder-file-mask-exclude', '-ifoe', help="Specify file mask to exclude for input folder. It is applied after --input-folder-file-mask-include. Separate multiple masks with semicolon (;)")
-    parser.add_argument('--hash-file-name-output-postfix', '-op', action='append', help="Specify postfix, which will be appended to the end of output file names. This is to specify for different contextes, e.g. if file name ends with \".md5\", then it ends with \"md5.<value>\"")
-    parser.add_argument('--hash-algo', help=f"Specify hash algo (default: {hash_calc.FileHashCalc.hash_algo_default_str})", default=hash_calc.FileHashCalc.hash_algo_default_str, choices=hash_calc.FileHashCalc.hash_algos)
-    parser.add_argument('--suppress-output', '-so', help="Suppress console output", action="store_true")
-    parser.add_argument('--pause-after-file', '-pf', help="Specify pause after every file handled, in seconds. Note, if file is skipped, then no pause applied", type=int)
-    parser.add_argument('--retry-count-on-data-read-error', help=f"Specify count of retries on data read error (default: {calc.retry_count_on_data_read_error})", default=calc.retry_count_on_data_read_error, type=int)
-    parser.add_argument('--retry-pause-on-data-read-error', help=f"Specify pause before retrying on data read error (default: {calc.retry_pause_on_data_read_error})", default=calc.retry_pause_on_data_read_error, type=int)
-    parser.add_argument('--force-calc-hash', '-fch', help="If specified than hash calculated always. If not, then hash is not calculated if file with hash already exist", action="store_true")
+    try:
+        # Ref: https://www.programcreek.com/python/example/6706/argparse.RawDescriptionHelpFormatter
+        parser = argparse.ArgumentParser(description=description, formatter_class=argparse.RawDescriptionHelpFormatter)
+        parser.add_argument('--input-file', '-if', action="append", help="Specify one or more input files")
+        parser.add_argument('--input-folder', '-ifo', action="append", help="Specify one or more input folders. All files in folder are handled recursively")
+        parser.add_argument('--input-folder-file-mask-include', '-ifoi', help="Specify file mask to include for input folder. All files in the folder considered if not specified. Separate multiple masks with semicolon (;)")
+        parser.add_argument('--input-folder-file-mask-exclude', '-ifoe', help="Specify file mask to exclude for input folder. It is applied after --input-folder-file-mask-include. Separate multiple masks with semicolon (;)")
+        parser.add_argument('--hash-file-name-output-postfix', '-op', action='append', help="Specify postfix, which will be appended to the end of output file names. This is to specify for different contextes, e.g. if file name ends with \".md5\", then it ends with \"md5.<value>\"")
+        parser.add_argument('--hash-algo', help=f"Specify hash algo (default: {hash_calc.FileHashCalc.hash_algo_default_str})", default=hash_calc.FileHashCalc.hash_algo_default_str, choices=hash_calc.FileHashCalc.hash_algos)
+        parser.add_argument('--suppress-output', '-so', help="Suppress console output", action="store_true")
+        parser.add_argument('--pause-after-file', '-pf', help="Specify pause after every file handled, in seconds. Note, if file is skipped, then no pause applied", type=int)
+        parser.add_argument('--retry-count-on-data-read-error', help=f"Specify count of retries on data read error (default: {calc.retry_count_on_data_read_error})", default=calc.retry_count_on_data_read_error, type=int)
+        parser.add_argument('--retry-pause-on-data-read-error', help=f"Specify pause before retrying on data read error (default: {calc.retry_pause_on_data_read_error})", default=calc.retry_pause_on_data_read_error, type=int)
+        parser.add_argument('--force-calc-hash', '-fch', help="If specified than hash calculated always. If not, then hash is not calculated if file with hash already exist", action="store_true")
 
-    # Ref: https://stackoverflow.com/questions/23032514/argparse-disable-same-argument-occurrences
-    cmd_line_args = parser.parse_args()
-    if (not cmd_line_args.input_file and not cmd_line_args.input_folder):
-        parser.error("One or more input files and/or folders should be specified")
-    if cmd_line_args.hash_file_name_output_postfix and len(cmd_line_args.hash_file_name_output_postfix) > 1:
-        parser.error("--hash-file-name-output-postfix appears several times.")
+        # Ref: https://stackoverflow.com/questions/23032514/argparse-disable-same-argument-occurrences
+        cmd_line_args = parser.parse_args()
 
-    if cmd_line_args.pause_after_file and cmd_line_args.pause_after_file < 0:
-        parser.error('--pause-after-file must be non-negative')
+        if (not cmd_line_args.input_file and not cmd_line_args.input_folder):
+            parser.error("One or more input files and/or folders should be specified")
+        if cmd_line_args.hash_file_name_output_postfix and len(cmd_line_args.hash_file_name_output_postfix) > 1:
+            parser.error("--hash-file-name-output-postfix appears several times.")
+
+        if cmd_line_args.pause_after_file and cmd_line_args.pause_after_file < 0:
+            parser.error('--pause-after-file must be non-negative')
+    except SystemExit as se:
+        # Check if error is related to invalid command line parameters
+        # Ref: https://docs.python.org/3/library/argparse.html#argparse.ArgumentParser.error
+        if se.code == 2:
+            return ExitCode.INVALID_COMMAND_LINE_PARAMETERS
+        raise se
+    return ExitCode.OK
+
 
 def get_date_time_str(dateTime: datetime) -> str:
     return dateTime.strftime("%Y.%m.%d %H:%M:%S")
@@ -104,7 +115,7 @@ def handle_input_file(input_file_name):
     if (not cmd_line_args.force_calc_hash and os.path.exists(output_file_name)):
         if not cmd_line_args.suppress_output:
             print("Output file name '" + output_file_name + "' exists ... calculation of hash skipped.\n")
-            return ExitCode.OK_SKIPPED_ALREADY_CALCULATED
+        return ExitCode.OK_SKIPPED_ALREADY_CALCULATED
     if not cmd_line_args.suppress_output:
         print("Calculate hash for file '" + input_file_name + "'...")
 
@@ -222,13 +233,17 @@ def handle_input_files():
 try:
 
     if __name__ == '__main__':
-        parse_command_line()
+        parse_res = parse_command_line()
+        if parse_res  != ExitCode.OK:
+            exit(int(parse_res))
     
         e = handle_input_files()
         #print("e = {0}".format(e))
         exit(int(e))
 
-except Exception as ex:
+except SystemExit as se:
+    exit(se.code)
+except BaseException as ex:
     # Ref: https://stackoverflow.com/a/4564595/13441
     # Wierd that `ex` is not used
     print(traceback.format_exc())

@@ -8,6 +8,7 @@
                            [--pause-after-file PAUSE_AFTER_FILE]
                            [--retry-count-on-data-read-error RETRY_COUNT_ON_DATA_READ_ERROR]
                            [--retry-pause-on-data-read-error RETRY_PAUSE_ON_DATA_READ_ERROR]
+                           [--force-calc-hash]
 
     This application is to calculate hashes of files with extended features: support of show progress,
     folders and file masks for multiple files, skip calculation of handled files etc...
@@ -19,6 +20,7 @@
      8 - PROGRAM_INTERRUPTED_BY_USER
      9 - DATA_READ_ERROR: there was error(s) when reading some file(s). Probably hash is not calculated for all files
     10 - EXCEPTION_THROWN_ON_PROGRAM_EXECUTION
+    11 - INVALID_COMMAND_LINE_PARAMETERS
 
     optional arguments:
       -h, --help            show this help message and exit
@@ -53,3 +55,6 @@
       --retry-pause-on-data-read-error RETRY_PAUSE_ON_DATA_READ_ERROR
                             Specify pause before retrying on data read error
                             (default: 30)
+      --force-calc-hash, -fch
+                            If specified than hash calculated always. If not, then
+                            hash is not calculated if file with hash already exist

@@ -18,6 +18,10 @@ class SimpleCommandLineTestCase(unittest.TestCase):
         self.work_path = os.getcwd() + '/tests/tmp'
         self.clean_work_dir()
 
+    # Ref: https://docs.python.org/3/library/unittest.html#unittest.TestCase.tearDown
+    def  tearDown(self):
+        self.clean_work_dir()
+
     def clean_work_dir(self):
         # Ref: https://stackoverflow.com/questions/185936/how-to-delete-the-contents-of-a-folder
         for filename in os.listdir(self.work_path):
@@ -93,6 +97,30 @@ class SimpleCommandLineTestCase(unittest.TestCase):
         exit_code = os.system(f'smart_hasher --input-file {self.work_path}/nofile.txt --suppress-output --retry-pause-on-data-read-error 0')
         self.assertEqual(smart_hasher.ExitCode(exit_code), smart_hasher.ExitCode.DATA_READ_ERROR)
 
+    def test_simple_force_calc_hash(self):
+        data_file_name = f"{self.work_path}/file1.txt"
+        hash_file_name = f"{data_file_name}.sha1"
+        wrong_hash = "<wrong_hash_value>"
+        corrent_hash = "e8b0faa145c4590e3e424403e758f6d4b5347c45"
+
+        with open(data_file_name, "w") as f:
+            f.write("qwerty1234567890")
+        with open(hash_file_name, "w") as f:
+            f.write(wrong_hash)
+
+        exit_code = os.system(f'smart_hasher --input-file {data_file_name} --suppress-output') 
+        self.assertEqual(exit_code, 0)
+        with open(hash_file_name, "r") as f:
+            actual_hash = f.read()
+        self.assertEqual(wrong_hash, actual_hash)
+
+        exit_code = os.system(f'smart_hasher --input-file {data_file_name} --force-calc-hash --suppress-output')
+        self.assertEqual(exit_code, 0)
+        with open(hash_file_name, "r") as f:
+            actual_hash_text = f.read()
+        actual_hash = actual_hash_text[:40]
+        self.assertEqual(corrent_hash, actual_hash)
+
     #@unittest.skip("This is sandbox, actually not unit test")
     def _test_sandbox(self):
         # Ref: https://docs.python.org/3/library/tracemalloc.html
@@ -120,12 +148,12 @@ class SimpleCommandLineTestCase(unittest.TestCase):
         print('^^^^^^^^^^^^^^ completed ^^^^^^^^^^^^^^^^^')
 
 if __name__ == '__main__':
-    run_single_test = False
+    run_single_test = True
     if run_single_test:
         # Run single test
         # https://docs.python.org/3/library/unittest.html#organizing-test-code
         suite = unittest.TestSuite()
-        suite.addTest(SimpleCommandLineTestCase('test_specify_non_existent_file'))
+        suite.addTest(SimpleCommandLineTestCase('test_simple_force_calc_hash'))
         runner = unittest.TextTestRunner()
         runner.run(suite)
     else:
