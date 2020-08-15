@@ -37,7 +37,7 @@ class SimpleCommandLineTestCase(unittest.TestCase):
     def test_calc_hash_for_one_small_file_sha1(self):
         shutil.copyfile(f'{self.data_path}/file1.txt', f'{self.work_path}/file1.txt')
 
-        os.system(f'smart_hasher --input-folder {self.work_path} --suppress-output')
+        os.system(f'smart_hasher --input-folder {self.work_path} --suppress-console-reporting-output --suppress-output-file-comments')
         
         with open(f'{self.data_path}/file1.txt.sha1', mode='r') as sha1_expected_file:
             sha1_expected = sha1_expected_file.read()
@@ -51,7 +51,7 @@ class SimpleCommandLineTestCase(unittest.TestCase):
     def test_calc_hash_for_one_small_file_md5(self):
         shutil.copyfile(f'{self.data_path}/file1.txt', f'{self.work_path}/file1.txt')
 
-        os.system(f'smart_hasher --input-folder {self.work_path} --hash-algo md5 --suppress-output')
+        os.system(f'smart_hasher --input-folder {self.work_path} --hash-algo md5 --suppress-console-reporting-output --suppress-output-file-comments')
         
         with open(f'{self.data_path}/file1.txt.md5', mode='r') as md5_expected_file:
             md5_expected = md5_expected_file.read()
@@ -65,7 +65,7 @@ class SimpleCommandLineTestCase(unittest.TestCase):
         for i in range(1, 4):
             shutil.copyfile(f'{self.data_path}/file{i}.txt', f'{self.work_path}/file{i}.txt')
 
-        os.system(f'smart_hasher --input-folder {self.work_path} --suppress-output')
+        os.system(f'smart_hasher --input-folder {self.work_path} --suppress-console-reporting-output --suppress-output-file-comments')
         
         for i in range(1, 4):
             with open(f'{self.data_path}/file{i}.txt.sha1', mode='r') as sha1_expected_file:
@@ -81,7 +81,7 @@ class SimpleCommandLineTestCase(unittest.TestCase):
         for i in range(1, 4):
             shutil.copyfile(f'{self.data_path}/file{i}.txt', f'{self.work_path}/file{i}.txt')
 
-        os.system(f'smart_hasher --input-folder {self.work_path} --hash-algo md5 --suppress-output')
+        os.system(f'smart_hasher --input-folder {self.work_path} --hash-algo md5 --suppress-console-reporting-output --suppress-output-file-comments')
         
         for i in range(1, 4):
             with open(f'{self.data_path}/file{i}.txt.md5', mode='r') as md5_expected_file:
@@ -94,7 +94,7 @@ class SimpleCommandLineTestCase(unittest.TestCase):
                 self.assertEqual(md5_expected, md5_actual, f'Wrong md5-hash for file "file{i}.txt". Expected: "{md5_expected}", actual: "{md5_actual}"')
 
     def test_specify_non_existent_file(self):
-        exit_code = os.system(f'smart_hasher --input-file {self.work_path}/nofile.txt --suppress-output --retry-pause-on-data-read-error 0')
+        exit_code = os.system(f'smart_hasher --input-file {self.work_path}/nofile.txt --suppress-console-reporting-output --retry-pause-on-data-read-error 0')
         self.assertEqual(smart_hasher.ExitCode(exit_code), smart_hasher.ExitCode.DATA_READ_ERROR)
 
     def test_simple_force_calc_hash(self):
@@ -108,18 +108,34 @@ class SimpleCommandLineTestCase(unittest.TestCase):
         with open(hash_file_name, "w") as f:
             f.write(wrong_hash)
 
-        exit_code = os.system(f'smart_hasher --input-file {data_file_name} --suppress-output') 
+        exit_code = os.system(f'smart_hasher --input-file {data_file_name} --suppress-console-reporting-output') 
         self.assertEqual(exit_code, 0)
         with open(hash_file_name, "r") as f:
             actual_hash = f.read()
         self.assertEqual(wrong_hash, actual_hash)
 
-        exit_code = os.system(f'smart_hasher --input-file {data_file_name} --force-calc-hash --suppress-output')
+        exit_code = os.system(f'smart_hasher --input-file {data_file_name} --force-calc-hash --suppress-console-reporting-output --suppress-output-file-comments')
         self.assertEqual(exit_code, 0)
         with open(hash_file_name, "r") as f:
             actual_hash_text = f.read()
         actual_hash = actual_hash_text[:40]
         self.assertEqual(corrent_hash, actual_hash)
+
+    @unittest.skip("Not implemented")
+    def test_calc_hash_with_comments_in_output_file(self):
+        shutil.copyfile(f'{self.data_path}/file1.txt', f'{self.work_path}/file1.txt')
+
+        os.system(f'smart_hasher --input-folder {self.work_path} --suppress-console-reporting-output')
+        
+        with open(f'{self.data_path}/file1.txt.sha1', mode='r') as sha1_expected_file:
+            sha1_expected = sha1_expected_file.read()
+
+        with open(f'{self.work_path}/file1.txt.sha1', mode='r') as sha1_actual_file:
+            sha1_actual = sha1_actual_file.read()
+        sha1_actual = sha1_actual[:40]
+
+        self.assertEqual(sha1_expected, sha1_actual, f'Wrong sha1-hash for file "file1.txt". Expected: "{sha1_expected}", actual: "{sha1_actual}"')
+
 
     #@unittest.skip("This is sandbox, actually not unit test")
     def _test_sandbox(self):
@@ -129,7 +145,7 @@ class SimpleCommandLineTestCase(unittest.TestCase):
         print("test_dummy run")
         shutil.copyfile(f'{self.data_path}/file1.txt', f'{self.work_path}/file1.txt')
 
-        os.system(f'smart_hasher --input-folder {self.work_path} --suppress-output')
+        os.system(f'smart_hasher --input-folder {self.work_path} --suppress-console-reporting-output')
         
         with open(f'{self.data_path}/file1.txt.sha1', mode='r') as sha1_expected_file:
             sha1_expected = sha1_expected_file.read()
@@ -153,7 +169,7 @@ if __name__ == '__main__':
         # Run single test
         # https://docs.python.org/3/library/unittest.html#organizing-test-code
         suite = unittest.TestSuite()
-        suite.addTest(SimpleCommandLineTestCase('test_simple_force_calc_hash'))
+        suite.addTest(SimpleCommandLineTestCase('test_calc_hash_for_one_small_file_md5'))
         runner = unittest.TextTestRunner()
         runner.run(suite)
     else:

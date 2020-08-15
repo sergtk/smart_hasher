@@ -18,7 +18,7 @@ class SimpleInputsTestCase(unittest.TestCase):
 
         calc = hash_calc.FileHashCalc()
         calc.file_name = file_name
-        calc.suppress_output = True
+        calc.suppress_console_reporting_output = True
 
         with open(f'{self.data_path}/file1.txt.sha1', mode='r') as sha1_expected_file:
             sha1_expected = sha1_expected_file.read()
@@ -40,7 +40,7 @@ class SimpleInputsTestCase(unittest.TestCase):
 
     def test_calc_hash_for_three_small_files(self):
         calc = hash_calc.FileHashCalc()
-        calc.suppress_output = True
+        calc.suppress_console_reporting_output = True
 
         for i in range(1, 4):
             file_name = f'{self.data_path}/file{i}.txt'

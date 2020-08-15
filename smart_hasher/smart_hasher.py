@@ -46,11 +46,11 @@ def get_output_file_name(input_file_name):
 
     output_file_name = input_file_name + "." + cmd_line_args.hash_algo
 
+    if cmd_line_args.add_output_file_name_timestamp:
+        output_file_name += "." + start_time_dic["file_postfix"]
+
     if cmd_line_args.hash_file_name_output_postfix:
         output_file_name += "." + cmd_line_args.hash_file_name_output_postfix[0]
-
-    if cmd_line_args.add_output_file_name_time_stamp:
-        output_file_name += "." + start_time_dic["file_postfix"]
 
     return output_file_name
 
@@ -82,12 +82,13 @@ def parse_command_line():
         parser.add_argument('--input-folder-file-mask-exclude', '-ifoe', help="Specify file mask to exclude for input folder. It is applied after --input-folder-file-mask-include. Separate multiple masks with semicolon (;)")
         parser.add_argument('--hash-file-name-output-postfix', '-op', action='append', help="Specify postfix, which will be appended to the end of output file names. This is to specify for different contextes, e.g. if file name ends with \".md5\", then it ends with \"md5.<value>\"")
         parser.add_argument('--hash-algo', help=f"Specify hash algo (default: {hash_calc.FileHashCalc.hash_algo_default_str})", default=hash_calc.FileHashCalc.hash_algo_default_str, choices=hash_calc.FileHashCalc.hash_algos)
-        parser.add_argument('--suppress-output', '-so', help="Suppress console output", action="store_true")
+        parser.add_argument('--suppress-console-reporting-output', '-so', help="Suppress console output with progress reporting", action="store_true")
         parser.add_argument('--pause-after-file', '-pf', help="Specify pause after every file handled, in seconds. Note, if file is skipped, then no pause applied", type=int)
         parser.add_argument('--retry-count-on-data-read-error', help=f"Specify count of retries on data read error (default: {calc.retry_count_on_data_read_error})", default=calc.retry_count_on_data_read_error, type=int)
         parser.add_argument('--retry-pause-on-data-read-error', help=f"Specify pause before retrying on data read error, in seconds (default: {calc.retry_pause_on_data_read_error})", default=calc.retry_pause_on_data_read_error, type=int)
         parser.add_argument('--force-calc-hash', '-fch', help="If specified than hash calculated always. If not, then hash is not calculated if file with hash already exist", action="store_true")
-        parser.add_argument('--add-output-file-name-time-stamp', help="Add time stamp to the output files. Note, that the time on program run taken. So it may differ from the file creation time, but it is equal for all files in one run", action="store_true")
+        parser.add_argument('--add-output-file-name-timestamp', help="Add timestamp to the output file names. Note, that the time on program run taken. So it may differ from the file creation time, but it is equal for all files in one run", action="store_true")
+        parser.add_argument('--suppress-output-file-comments', help="Don't add comments to output files. E.g. timestamp when hash generated", action="store_true")
 
         # Ref: https://stackoverflow.com/questions/23032514/argparse-disable-same-argument-occurrences
         cmd_line_args = parser.parse_args()
@@ -114,21 +115,21 @@ def get_date_time_str(dateTime: datetime) -> str:
 # Returns false if hash not calculated, probably because it was already calculated.
 def handle_input_file(input_file_name):
     start_date_time = datetime.now();
-    if not cmd_line_args.suppress_output:
+    if not cmd_line_args.suppress_console_reporting_output:
         print("Handle file start time: " + get_date_time_str(start_date_time) + " (" + input_file_name + ")")
     output_file_name = get_output_file_name(input_file_name)
     # Ref: https://stackoverflow.com/questions/82831/how-do-i-check-whether-a-file-exists-without-exceptions
     if (not cmd_line_args.force_calc_hash and os.path.exists(output_file_name)):
-        if not cmd_line_args.suppress_output:
+        if not cmd_line_args.suppress_console_reporting_output:
             print("Output file name '" + output_file_name + "' exists ... calculation of hash skipped.\n")
         return ExitCode.OK_SKIPPED_ALREADY_CALCULATED
-    if not cmd_line_args.suppress_output:
+    if not cmd_line_args.suppress_console_reporting_output:
         print("Calculate hash for file '" + input_file_name + "'...")
 
     calc = hash_calc.FileHashCalc()
     calc.file_name = input_file_name
     calc.hash_str = cmd_line_args.hash_algo
-    calc.suppress_output = cmd_line_args.suppress_output
+    calc.suppress_console_reporting_output = cmd_line_args.suppress_console_reporting_output
     calc.retry_count_on_data_read_error = cmd_line_args.retry_count_on_data_read_error;
     calc.retry_pause_on_data_read_error = cmd_line_args.retry_pause_on_data_read_error;
 
@@ -145,20 +146,22 @@ def handle_input_file(input_file_name):
     # Ref: https://stackoverflow.com/questions/6159900/correct-way-to-write-line-to-file
     with open(output_file_name, 'w') as outputFile:
         # outputFile.write("# MD5 hash generated by smart_hasher\n\n")
+        if not cmd_line_args.suppress_output_file_comments:
+            outputFile.write(f"# Timestamp of hash calculation: {start_time_dic['str']}\n")
         outputFile.write(hash + " *" + input_file_name + "\n")
 
-    if not cmd_line_args.suppress_output:
+    if not cmd_line_args.suppress_console_reporting_output:
         print("HASH: ", hash, "(" + output_file_name + ")")
 
     end_date_time = datetime.now();
-    if not cmd_line_args.suppress_output:
+    if not cmd_line_args.suppress_console_reporting_output:
         print("Handle file end time: " + get_date_time_str(end_date_time) + " (" + input_file_name + ")")
     seconds = int((end_date_time - start_date_time).total_seconds());
     # print("Elapsed time: {0}:{1:02d}:{2:02d}".format(int(seconds / 60 / 60), int(seconds / 60) % 60, seconds % 60))
 
     file_size = os.path.getsize(input_file_name)
     speed = file_size / seconds if seconds > 0 else 0
-    if not cmd_line_args.suppress_output:
+    if not cmd_line_args.suppress_console_reporting_output:
         print("Elapsed time: {0} (Average speed: {1}/sec)\n".format(util.format_seconds(seconds), util.convert_size_to_display(speed)))
      
     if (cmd_line_args.pause_after_file is not None):
@@ -221,7 +224,7 @@ def handle_input_files():
 
     file_count = len(input_file_names)
     for fi in range(0, file_count):
-        if not cmd_line_args.suppress_output:
+        if not cmd_line_args.suppress_console_reporting_output:
             print("File {0} of {1}".format(fi + 1, file_count))
 
         input_file_name = input_file_names[fi]
@@ -238,8 +241,8 @@ def handle_input_files():
 
 try:
     if __name__ == '__main__':
-
         # time in different formats when program run
+        # Ref: https://www.programiz.com/python-programming/datetime/strftime
         start_time_dic = {"datetime": datetime.now()}
         start_time_dic["str"] = start_time_dic["datetime"].strftime("%Y-%m-%d %H:%M:%S")
         start_time_dic["file_postfix"] = start_time_dic["datetime"].strftime("%Y-%m-%d_%H-%M-%S")

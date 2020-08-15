@@ -15,7 +15,7 @@ class FileHashCalc(object):
     def __init__(self):
         self.file_name = None
         self.hash_str = FileHashCalc.hash_algo_default_str
-        self.suppress_output = False
+        self.suppress_console_reporting_output = False
         self.file_chunk_size = 1024 * 1024
         self.result = None
         self.retry_count_on_data_read_error = 5
@@ -35,7 +35,7 @@ class FileHashCalc(object):
         DATA_READ_ERROR = 9
 
     def _print(self, str="", end="\n"):
-        if (self.suppress_output):
+        if (self.suppress_console_reporting_output):
             return
         print(str, end=end)
 
