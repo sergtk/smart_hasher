@@ -121,21 +121,47 @@ class SimpleCommandLineTestCase(unittest.TestCase):
         actual_hash = actual_hash_text[:40]
         self.assertEqual(corrent_hash, actual_hash)
 
-    @unittest.skip("Not implemented")
     def test_calc_hash_with_comments_in_output_file(self):
         shutil.copyfile(f'{self.data_path}/file1.txt', f'{self.work_path}/file1.txt')
 
-        os.system(f'smart_hasher --input-folder {self.work_path} --suppress-console-reporting-output')
+        # Check hash in output file without comments
+
+        os.system(f'smart_hasher --input-folder {self.work_path} --suppress-console-reporting-output --suppress-output-file-comments')
+
+        hash_file_name_expected = f'{self.data_path}/file1.txt.sha1';
+        hash_file_name_actual = f'{self.work_path}/file1.txt.sha1';
+
+        with open(hash_file_name_expected, mode='r') as hash_file_expected:
+            hash_expected = hash_file_expected.read()
+
+        with open(hash_file_name_actual, mode='r') as hash_file_actual:
+            hash_actual = hash_file_actual.readline()
+        hash_actual = hash_actual[:40]
+
+        self.assertEqual(hash_expected, hash_actual, f'Wrong hash for input file "file1.txt". Expected: "{hash_expected}", actual: "{hash_actual}"')
+
+        os.remove(hash_file_name_actual)
+
+        # Check hash in output file with comments
         
-        with open(f'{self.data_path}/file1.txt.sha1', mode='r') as sha1_expected_file:
-            sha1_expected = sha1_expected_file.read()
+        os.system(f'smart_hasher --input-folder {self.work_path} --suppress-console-reporting-output')
 
-        with open(f'{self.work_path}/file1.txt.sha1', mode='r') as sha1_actual_file:
-            sha1_actual = sha1_actual_file.read()
-        sha1_actual = sha1_actual[:40]
+        hash_file_name_expected = f'{self.data_path}/file1.txt.sha1';
+        hash_file_name_actual = f'{self.work_path}/file1.txt.sha1';
 
-        self.assertEqual(sha1_expected, sha1_actual, f'Wrong sha1-hash for file "file1.txt". Expected: "{sha1_expected}", actual: "{sha1_actual}"')
+        with open(hash_file_name_expected, mode='r') as hash_file_expected:
+            hash_expected = hash_file_expected.read()
 
+        with open(hash_file_name_actual, mode='r') as hash_file_actual:
+            hash_actual = hash_file_actual.readline()
+            has_comment = False
+            while hash_actual.startswith("#"):
+                hash_actual = hash_file_actual.readline()
+                has_comment = True
+        self.assertTrue(has_comment, "Output file should have comment")
+        hash_actual = hash_actual[:40]
+
+        self.assertEqual(hash_expected, hash_actual, 'Wrong hash for input file "file1.txt". Expected: "{}", actual: "{}"'.format(hash_expected, hash_actual))
 
     #@unittest.skip("This is sandbox, actually not unit test")
     def _test_sandbox(self):
@@ -169,7 +195,7 @@ if __name__ == '__main__':
         # Run single test
         # https://docs.python.org/3/library/unittest.html#organizing-test-code
         suite = unittest.TestSuite()
-        suite.addTest(SimpleCommandLineTestCase('test_calc_hash_for_one_small_file_md5'))
+        suite.addTest(SimpleCommandLineTestCase('test_calc_hash_with_comments_in_output_file'))
         runner = unittest.TextTestRunner()
         runner.run(suite)
     else:

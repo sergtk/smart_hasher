@@ -112,8 +112,7 @@ def parse_command_line():
 def get_date_time_str(dateTime: datetime) -> str:
     return dateTime.strftime("%Y.%m.%d %H:%M:%S")
 
-# Returns false if hash not calculated, probably because it was already calculated.
-def handle_input_file(input_file_name):
+def handle_input_file(input_file_name) -> ExitCode:
     start_date_time = datetime.now();
     if not cmd_line_args.suppress_console_reporting_output:
         print("Handle file start time: " + get_date_time_str(start_date_time) + " (" + input_file_name + ")")
