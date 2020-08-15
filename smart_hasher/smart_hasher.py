@@ -11,6 +11,7 @@ import hash_calc
 import util
 import enum
 import functools
+from pprint import pprint
 
 # Code with values less than 7 are considered like OK, and program can continue execution
 # Ref: https://docs.python.org/3.7/library/enum.html
@@ -37,16 +38,20 @@ exit_code_descriptions = {
     ExitCode.OK:                                "everthing fine. Program executed successfully",
     ExitCode.OK_SKIPPED_ALREADY_CALCULATED:     "everything fine. OK may be returned anyway if file(s) is skipped because the hash is already calculated.",
     ExitCode.FAILED:                            "general failure, more specific information is not available.",
-    # ExitCode.PROGRAM_INTERRUPTED_BY_USER: "",
     ExitCode.DATA_READ_ERROR:                   "there was error(s) when reading some file(s). Probably hash is not calculated for all files",
-    # ExitCode.EXCEPTION_THROWN_ON_PROGRAM_EXECUTION: "",
 }
 
 def get_output_file_name(input_file_name):
+    #global start_time_dic
+
     output_file_name = input_file_name + "." + cmd_line_args.hash_algo
 
     if cmd_line_args.hash_file_name_output_postfix:
         output_file_name += "." + cmd_line_args.hash_file_name_output_postfix[0]
+
+    if cmd_line_args.add_output_file_name_time_stamp:
+        output_file_name += "." + start_time_dic["file_postfix"]
+
     return output_file_name
 
 # Ref: "Argparse Tutorial" https://docs.python.org/3/howto/argparse.html
@@ -80,8 +85,9 @@ def parse_command_line():
         parser.add_argument('--suppress-output', '-so', help="Suppress console output", action="store_true")
         parser.add_argument('--pause-after-file', '-pf', help="Specify pause after every file handled, in seconds. Note, if file is skipped, then no pause applied", type=int)
         parser.add_argument('--retry-count-on-data-read-error', help=f"Specify count of retries on data read error (default: {calc.retry_count_on_data_read_error})", default=calc.retry_count_on_data_read_error, type=int)
-        parser.add_argument('--retry-pause-on-data-read-error', help=f"Specify pause before retrying on data read error (default: {calc.retry_pause_on_data_read_error})", default=calc.retry_pause_on_data_read_error, type=int)
+        parser.add_argument('--retry-pause-on-data-read-error', help=f"Specify pause before retrying on data read error, in seconds (default: {calc.retry_pause_on_data_read_error})", default=calc.retry_pause_on_data_read_error, type=int)
         parser.add_argument('--force-calc-hash', '-fch', help="If specified than hash calculated always. If not, then hash is not calculated if file with hash already exist", action="store_true")
+        parser.add_argument('--add-output-file-name-time-stamp', help="Add time stamp to the output files. Note, that the time on program run taken. So it may differ from the file creation time, but it is equal for all files in one run", action="store_true")
 
         # Ref: https://stackoverflow.com/questions/23032514/argparse-disable-same-argument-occurrences
         cmd_line_args = parser.parse_args()
@@ -231,8 +237,14 @@ def handle_input_files():
     return ExitCode.OK
 
 try:
-
     if __name__ == '__main__':
+
+        # time in different formats when program run
+        start_time_dic = {"datetime": datetime.now()}
+        start_time_dic["str"] = start_time_dic["datetime"].strftime("%Y-%m-%d %H:%M:%S")
+        start_time_dic["file_postfix"] = start_time_dic["datetime"].strftime("%Y-%m-%d_%H-%M-%S")
+        #pprint(start_time_dic)
+
         parse_res = parse_command_line()
         if parse_res  != ExitCode.OK:
             exit(int(parse_res))

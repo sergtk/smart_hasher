@@ -8,7 +8,7 @@
                            [--pause-after-file PAUSE_AFTER_FILE]
                            [--retry-count-on-data-read-error RETRY_COUNT_ON_DATA_READ_ERROR]
                            [--retry-pause-on-data-read-error RETRY_PAUSE_ON_DATA_READ_ERROR]
-                           [--force-calc-hash]
+                           [--force-calc-hash] [--add-output-file-name-time-stamp]
 
     This application is to calculate hashes of files with extended features: support of show progress,
     folders and file masks for multiple files, skip calculation of handled files etc...
@@ -53,8 +53,13 @@
                             Specify count of retries on data read error (default:
                             5)
       --retry-pause-on-data-read-error RETRY_PAUSE_ON_DATA_READ_ERROR
-                            Specify pause before retrying on data read error
-                            (default: 30)
+                            Specify pause before retrying on data read error, in
+                            seconds (default: 30)
       --force-calc-hash, -fch
                             If specified than hash calculated always. If not, then
                             hash is not calculated if file with hash already exist
+      --add-output-file-name-time-stamp
+                            Add time stamp to the output files. Note, that the
+                            time on program run taken. So it may differ from the
+                            file creation time, but it is equal for all files in
+                            one run
