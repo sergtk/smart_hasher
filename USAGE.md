@@ -4,11 +4,13 @@
                            [--input-folder-file-mask-exclude INPUT_FOLDER_FILE_MASK_EXCLUDE]
                            [--hash-file-name-output-postfix HASH_FILE_NAME_OUTPUT_POSTFIX]
                            [--hash-algo {md5,sha1,sha224,sha256,sha384,sha512}]
-                           [--suppress-output]
+                           [--suppress-console-reporting-output]
                            [--pause-after-file PAUSE_AFTER_FILE]
                            [--retry-count-on-data-read-error RETRY_COUNT_ON_DATA_READ_ERROR]
                            [--retry-pause-on-data-read-error RETRY_PAUSE_ON_DATA_READ_ERROR]
-                           [--force-calc-hash] [--add-output-file-name-time-stamp]
+                           [--force-calc-hash] [--add-output-file-name-timestamp]
+                           [--suppress-output-file-comments]
+                           [--use-absolute-file-names]
 
     This application is to calculate hashes of files with extended features: support of show progress,
     folders and file masks for multiple files, skip calculation of handled files etc...
@@ -44,8 +46,8 @@
                             ends with "md5.<value>"
       --hash-algo {md5,sha1,sha224,sha256,sha384,sha512}
                             Specify hash algo (default: sha1)
-      --suppress-output, -so
-                            Suppress console output
+      --suppress-console-reporting-output, -so
+                            Suppress console output with progress reporting
       --pause-after-file PAUSE_AFTER_FILE, -pf PAUSE_AFTER_FILE
                             Specify pause after every file handled, in seconds.
                             Note, if file is skipped, then no pause applied
@@ -58,8 +60,14 @@
       --force-calc-hash, -fch
                             If specified than hash calculated always. If not, then
                             hash is not calculated if file with hash already exist
-      --add-output-file-name-time-stamp
-                            Add time stamp to the output files. Note, that the
+      --add-output-file-name-timestamp
+                            Add timestamp to the output file names. Note, that the
                             time on program run taken. So it may differ from the
                             file creation time, but it is equal for all files in
                             one run
+      --suppress-output-file-comments
+                            Don't add comments to output files. E.g. timestamp
+                            when hash generated
+      --use-absolute-file-names
+                            Use absolute file names in output. If argument is not
+                            specified, relative file names used
