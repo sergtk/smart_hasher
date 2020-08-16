@@ -58,6 +58,8 @@ def format_seconds(seconds: float) -> str:
 
 def rel_file_path(work_file_name, base_file_name, return_absolute_path = False):
     """
+    Note, last part after slash in input file names are considered as file name, not a folder
+
     if return_absolute_path == False
         then returns file with path for `work_file_name` relative to `base_file_name`.
         In other words this function show how to traverse from one file to other.
@@ -81,6 +83,6 @@ def rel_file_path(work_file_name, base_file_name, return_absolute_path = False):
 
     ret = work_file
     if (work_rel != "."):
-        ret += str(os.path.join(work_rel, ret))
+        ret = str(os.path.join(work_rel, ret))
 
     return ret

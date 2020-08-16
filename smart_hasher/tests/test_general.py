@@ -2,6 +2,7 @@ import os
 import unittest
 #import smart_hasher
 import hash_calc
+import util
 
 class SimpleInputsTestCase(unittest.TestCase):
     """This class contains testing simple functionality"""
@@ -61,6 +62,24 @@ class SimpleInputsTestCase(unittest.TestCase):
             self.assertEqual(calc_res, hash_calc.FileHashCalc.ReturnCode.OK)
             md5_actual = calc.result
             self.assertEqual(md5_expected, md5_actual)
+    
+    def test_rel_file_paths(self):
+        # data_path = os.getcwd() + '/tests/data'
+
+        # Ref: https://stackoverflow.com/questions/21158667/comparing-two-paths-in-python
+
+        work = self.data_path + "/simple.txt"
+        base = self.data_path + "/simple.txt.sha1"
+        output = util.rel_file_path(work, base)
+        self.assertEqual(os.path.normpath(output), os.path.normpath("simple.txt"))
+
+        work = self.data_path + "/aaa/bbb/simple.txt"
+        base = self.data_path + "/ccc/simple.txt.sha1"
+        output = util.rel_file_path(work, base)
+        self.assertEqual(os.path.normpath(output), os.path.normpath("../aaa/bbb/simple.txt"))
+
+        output = util.rel_file_path(work, base, True)
+        self.assertEqual(os.path.normpath(output), os.path.normpath(work))
 
 if __name__ == '__main__':
     run_single_test = True
@@ -68,7 +87,7 @@ if __name__ == '__main__':
         # Run single test
         # https://docs.python.org/3/library/unittest.html#organizing-test-code
         suite = unittest.TestSuite()
-        suite.addTest(SimpleInputsTestCase('test_calc_hash_for_one_small_file'))
+        suite.addTest(SimpleInputsTestCase('test_rel_file_paths'))
         #suite.run()
         runner = unittest.TextTestRunner()
         runner.run(suite)
