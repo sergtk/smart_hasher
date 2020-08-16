@@ -241,14 +241,32 @@ def handle_input_files():
         return ExitCode.DATA_READ_ERROR
     return ExitCode.OK
 
+def fill_start_time_dic():
+    global start_time_dic
+    # time in different formats when program run
+    # Ref: https://www.programiz.com/python-programming/datetime/strftime
+    start_time_dic = {"datetime": datetime.now()}
+    start_time_dic["file_postfix"] = start_time_dic["datetime"].strftime("%Y-%m-%d_%H-%M-%S")
+    
+
+    tz_offset = time.localtime().tm_gmtoff
+    tz_hours = abs(tz_offset) // 60 // 60
+    tz_minutes = abs(tz_offset) // 60 % 60
+    if tz_offset < 0:
+        tz_sign = "-"
+    else:
+        tz_sign = "+"
+    tz_str = f"UTC{tz_sign}{tz_hours:02d}:{tz_minutes:02d}";
+
+    # Ref: https://howchoo.com/g/ywi5m2vkodk/working-with-datetime-objects-and-timezones-in-python
+    start_time_dic["str"] = start_time_dic["datetime"].strftime("%Y-%m-%d %H:%M:%S") + f" {tz_str}";
+
+    pprint(start_time_dic)
+
 try:
     if __name__ == '__main__':
-        # time in different formats when program run
-        # Ref: https://www.programiz.com/python-programming/datetime/strftime
-        start_time_dic = {"datetime": datetime.now()}
-        start_time_dic["str"] = start_time_dic["datetime"].strftime("%Y-%m-%d %H:%M:%S")
-        start_time_dic["file_postfix"] = start_time_dic["datetime"].strftime("%Y-%m-%d_%H-%M-%S")
-        #pprint(start_time_dic)
+
+        fill_start_time_dic()
 
         parse_res = parse_command_line()
         if parse_res  != ExitCode.OK:

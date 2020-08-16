@@ -2,7 +2,7 @@
 
 ## Rationale
 
-This app is to calculate hashes of files with extended features.
+This app is to calculate hashes of files with many advanced features.
 
 One of cases e.g. if it is needed to check integrity of the large files with the slow connection. In such case network interruption may happened, slow speed and/or hang up.
 When calculating a hash the progress is shown so you can get an idea about network speed.
@@ -15,3 +15,12 @@ To calculate hash for already calculated file, you may add postfix for output fi
 ## Usage
 
 Please check [USAGE.md](USAGE.md) file
+
+## Some features supported
+
+* Show speed for overall file and current speed. This is especially useful on non-robust connection.
+* Retry on error.
+* Skip files for which hashes already calculated. This is convenient when process is interrupted and resumed later.
+* Multiple files.
+* Many popular hash algorithms.
+* Save hashes for many input files in one output file or for one output file per input file.
