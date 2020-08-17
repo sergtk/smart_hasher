@@ -187,7 +187,6 @@ class SimpleCommandLineTestCase(unittest.TestCase):
         print("[ Top 10 ]")
         for stat in top_stats[:10]:
             print(stat)
-        print('^^^^^^^^^^^^^^ completed ^^^^^^^^^^^^^^^^^')
 
 if __name__ == '__main__':
     run_single_test = True
