@@ -27,12 +27,24 @@ class HashStorageAbstract(abc.ABC):
     @abc.abstractmethod
     def set_hash(self, data_file_name, hash_value): pass # force re-hash should be checked
 
+    # Ref: https://www.geeksforgeeks.org/with-statement-in-python/ - it looks fine for __enter__, but not for __exit__
+    def __enter__ (self):
+        self.load_hashes_info()
+        return self
+
+    # Ref: https://stackoverflow.com/questions/22417323/how-do-enter-and-exit-work-in-python-decorator-classes
+    # Ref: https://docs.python.org/3/reference/datamodel.html#object.__exit__
+    def __exit__ (self, exc_type, exc_value, traceback):
+        self.save_hashes_info()
+        return False
 
 class HashPerFileStorage(HashStorageAbstract):
 
-    def load_hashes_info(self): pass
+    def load_hashes_info(self):
+        pass
 
-    def save_hashes_info(self): pass
+    def save_hashes_info(self):
+        pass
 
     def get_hash_file_name(self, data_file_name):
         ret = data_file_name + self.hash_file_name_postfix

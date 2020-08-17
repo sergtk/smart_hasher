@@ -278,9 +278,8 @@ try:
         if parse_res  != ExitCode.OK:
             exit(int(parse_res))
 
-        hash_storage = hash_storages.HashPerFileStorage(get_hash_file_name_postfix(), cmd_line_args.use_absolute_file_names)
-    
-        e = handle_input_files(hash_storage)
+        with hash_storages.HashPerFileStorage(get_hash_file_name_postfix(), cmd_line_args.use_absolute_file_names) as hash_storage:
+            e = handle_input_files(hash_storage)
         #print("e = {0}".format(e))
         exit(int(e))
 
