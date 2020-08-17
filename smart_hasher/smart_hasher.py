@@ -281,10 +281,10 @@ try:
         with hash_storages.HashPerFileStorage(get_hash_file_name_postfix(), cmd_line_args.use_absolute_file_names) as hash_storage:
             e = handle_input_files(hash_storage)
         #print("e = {0}".format(e))
-        exit(int(e))
+        sys.exit(int(e))
 
 except SystemExit as se:
-    exit(se.code)
+    sys.exit(se.code)
 except BaseException as ex:
     # Ref: https://stackoverflow.com/a/4564595/13441
     # Wierd that `ex` is not used
@@ -293,4 +293,4 @@ except BaseException as ex:
     # Short message
     # print("Exception thrown:\n", ex)
 
-    exit(int(ExitCode.EXCEPTION_THROWN_ON_PROGRAM_EXECUTION))
+    sys.exit(int(ExitCode.EXCEPTION_THROWN_ON_PROGRAM_EXECUTION))
