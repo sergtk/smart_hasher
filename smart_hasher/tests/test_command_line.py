@@ -137,10 +137,10 @@ class SimpleCommandLineTestCase(unittest.TestCase):
 
         # Check hash in output file without comments
 
-        os.system(f'smart_hasher --input-folder {self.work_path} --suppress-console-reporting-output --suppress-output-file-comments')
+        os.system(f'smart_hasher --input-folder {self.work_path} --suppress-console-reporting-output --suppress-output-file-comments --hash-file-name-output-postfix test_hash')
 
         hash_file_name_expected = f'{self.data_path}/file1.txt.sha1';
-        hash_file_name_actual = f'{self.work_path}/file1.txt.sha1';
+        hash_file_name_actual = f'{self.work_path}/file1.txt.sha1.test_hash'; # Note, we also added postfix here in file name, so it is also check during testing
 
         with open(hash_file_name_expected, mode='r') as hash_file_expected:
             hash_expected = hash_file_expected.read()
@@ -205,7 +205,7 @@ if __name__ == '__main__':
         # Run single test
         # https://docs.python.org/3/library/unittest.html#organizing-test-code
         suite = unittest.TestSuite()
-        suite.addTest(SimpleCommandLineTestCase('test_calc_hash_for_three_small_files_sha1'))
+        suite.addTest(SimpleCommandLineTestCase('test_calc_hash_with_comments_in_output_file'))
         runner = unittest.TextTestRunner()
         runner.run(suite)
     else:
