@@ -6,6 +6,7 @@ import shutil
 import filecmp
 import asyncio
 import tracemalloc
+import filecmp
 
 class SimpleCommandLineTestCase(unittest.TestCase):
     """This class contains testing simple functionality from command line"""
@@ -35,7 +36,10 @@ class SimpleCommandLineTestCase(unittest.TestCase):
                 raise Exception(f'Failed to delete "{file_path}"', e)
 
     def test_calc_hash_for_one_small_file_sha1(self):
-        shutil.copyfile(f'{self.data_path}/file1.txt', f'{self.work_path}/file1.txt')
+
+        data_file_name = f'{self.work_path}/file1.txt';
+
+        shutil.copyfile(f'{self.data_path}/file1.txt', data_file_name)
 
         os.system(f'smart_hasher --input-folder {self.work_path} --suppress-console-reporting-output --suppress-output-file-comments')
         
@@ -47,6 +51,9 @@ class SimpleCommandLineTestCase(unittest.TestCase):
         sha1_actual = sha1_actual[:40]
 
         self.assertEqual(sha1_expected, sha1_actual, f'Wrong sha1-hash for file "file1.txt". Expected: "{sha1_expected}", actual: "{sha1_actual}"')
+
+        # Ref: https://docs.python.org/3.7/library/filecmp.html
+        self.assertTrue(filecmp.cmp(f'{self.data_path}/file1.txt', data_file_name, shallow=False), f"Input data file is corrupted! ({data_file_name})")
 
     def test_calc_hash_for_one_small_file_md5(self):
         shutil.copyfile(f'{self.data_path}/file1.txt', f'{self.work_path}/file1.txt')
@@ -76,6 +83,10 @@ class SimpleCommandLineTestCase(unittest.TestCase):
             sha1_actual = sha1_actual[:40]
             with self.subTest(i = i):
                 self.assertEqual(sha1_expected, sha1_actual, f'Wrong sha1-hash for file "file{i}.txt". Expected: "{sha1_expected}", actual: "{sha1_actual}"')
+
+            with self.subTest(i = i):
+                # Ref: https://docs.python.org/3.7/library/filecmp.html
+                self.assertTrue(filecmp.cmp(f'{self.data_path}/file{i}.txt', f'{self.work_path}/file{i}.txt', shallow=False), f"Input data file is corrupted! ({'self.work_path}/file{i}.txt'})")
 
     def test_calc_hash_for_three_small_files_md5(self):
         for i in range(1, 4):
@@ -194,7 +205,7 @@ if __name__ == '__main__':
         # Run single test
         # https://docs.python.org/3/library/unittest.html#organizing-test-code
         suite = unittest.TestSuite()
-        suite.addTest(SimpleCommandLineTestCase('test_calc_hash_with_comments_in_output_file'))
+        suite.addTest(SimpleCommandLineTestCase('test_calc_hash_for_three_small_files_sha1'))
         runner = unittest.TextTestRunner()
         runner.run(suite)
     else:
