@@ -17,7 +17,7 @@ class HashStorageAbstract(abc.ABC):
     def save_hashes_info(self): pass
 
     # This function is just for reporting.
-    # To check if data file has hash call `has_hash` function
+    # To check if the data file has hash the function call `has_hash` should be made
     @abc.abstractmethod
     def get_hash_file_name(self, data_file_name): pass
 
@@ -47,7 +47,7 @@ class HashPerFileStorage(HashStorageAbstract):
         pass
 
     def get_hash_file_name(self, data_file_name):
-        ret = data_file_name + self.hash_file_name_postfix
+        ret = os.path.abspath(data_file_name) + self.hash_file_name_postfix
         return ret
 
     def has_hash(self, data_file_name):
@@ -60,6 +60,42 @@ class HashPerFileStorage(HashStorageAbstract):
         return True
 
     def set_hash(self, data_file_name, hash_value):
+        hash_file_name = self.get_hash_file_name(data_file_name)
+        
+        # Ref: https://stackoverflow.com/questions/6159900/correct-way-to-write-line-to-file
+        with open(hash_file_name, 'w') as hash_file:
+            if not self.suppress_hash_file_comments:
+                hash_file.write(self.hash_file_header_comments)
+            data_file_name_user = util.rel_file_path(data_file_name, hash_file_name, self.use_absolute_file_names)
+            hash_file.write(hash_value + " *" + data_file_name_user + "\n")
+
+class SingleFileHashesStorage(HashStorageAbstract):
+
+    def load_hashes_info(self):
+		# TODO: implement
+        pass
+
+    def save_hashes_info(self):
+		# TODO: implement
+        pass
+
+    def get_hash_file_name(self, data_file_name):
+		# TODO: implement
+        ret = os.path.abspath(data_file_name) + self.hash_file_name_postfix
+        return ret
+
+    def has_hash(self, data_file_name):
+		# TODO: implement
+        # Ref: https://www.geeksforgeeks.org/python-check-if-a-file-or-directory-exists/
+        hash_file_name = self.get_hash_file_name(data_file_name)
+        if not os.path.exists(hash_file_name):
+            return False
+        if not os.path.isfile(hash_file_name):
+            raise Exception(f"Path '{hash_file_ame}' is dir and can't be used to save hash value")
+        return True
+
+    def set_hash(self, data_file_name, hash_value):
+		# TODO: implement
         hash_file_name = self.get_hash_file_name(data_file_name)
         
         # Ref: https://stackoverflow.com/questions/6159900/correct-way-to-write-line-to-file

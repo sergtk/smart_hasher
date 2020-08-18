@@ -92,17 +92,23 @@ def parse_command_line():
         parser.add_argument('--add-output-file-name-timestamp', help="Add timestamp to the output file names. Note, that the time on program run taken. So it may differ from the file creation time, but it is equal for all files in one run", action="store_true")
         parser.add_argument('--suppress-output-file-comments', help="Don't add comments to output files. E.g. timestamp when hash generated", action="store_true")
         parser.add_argument('--use-absolute-file-names', help="Use absolute file names in output. If argument is not specified, relative file names used", action="store_true")
+        parser.add_argument('--single-hash-file', help="If specified then all hashes are stored in one file specified as a value for this argument", action="append")
 
         # Ref: https://stackoverflow.com/questions/23032514/argparse-disable-same-argument-occurrences
         cmd_line_args = parser.parse_args()
 
         if (not cmd_line_args.input_file and not cmd_line_args.input_folder):
             parser.error("One or more input files and/or folders should be specified")
+
         if cmd_line_args.hash_file_name_output_postfix and len(cmd_line_args.hash_file_name_output_postfix) > 1:
             parser.error("--hash-file-name-output-postfix appears several times.")
 
         if cmd_line_args.pause_after_file and cmd_line_args.pause_after_file < 0:
             parser.error('--pause-after-file must be non-negative')
+
+        if cmd_line_args.single_hash_file and len(cmd_line_args.single_hash_file) > 1:
+            parser.error("--single-hash-file should be either specified once or not specified")
+
     except SystemExit as se:
         # Check if error is related to invalid command line parameters
         # Ref: https://docs.python.org/3/library/argparse.html#argparse.ArgumentParser.error
