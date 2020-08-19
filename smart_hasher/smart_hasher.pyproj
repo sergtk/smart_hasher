@@ -13,7 +13,7 @@
     <RootNamespace>smart_hasher</RootNamespace>
     <IsWindowsApplication>False</IsWindowsApplication>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>--input-file J:\tmp.mp4 --input-file J:\tmp1.mp4 --pause-after-file 5</CommandLineArguments>
+    <CommandLineArguments>--input-file J:\tmp.mp4 --input-file J:\tmp1.mp4 --input-file J:\Luminar4Setup.exe --pause-after-file 5 --single-hash-file-name-base J:\hash123  --use-absolute-file-names --force-calc-hash</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <InterpreterId>MSBuild|Python 3.7 (32-bit)|$(MSBuildProjectFullPath)</InterpreterId>
     <TestFramework>unittest</TestFramework>

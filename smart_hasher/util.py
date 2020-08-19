@@ -66,19 +66,25 @@ def rel_file_path(work_file_name, base_file_name, return_absolute_path = False):
 
     if return_absolute_path == True
         then returns absolute path for `work_file_name`
+        if `work_file_name` is relative than it is considered as relative to `base_file_name`,
+        and function return absolute path accounting this.
+        if `work_file_name` is absolute than it is returned.
     """
-    if return_absolute_path:
-        return os.path.abspath(work_file_name)
-
     # Ref: https://stackoverflow.com/questions/10149263/extract-a-part-of-the-filepath-a-directory-in-python
     # Ref: https://stackoverflow.com/a/7288073/13441
     
+    base_dir = os.path.dirname(os.path.abspath(base_file_name))
+
+    if return_absolute_path:
+        if os.path.isabs(work_file_name):
+            return work_file_name
+        work_abs_path = os.path.join(base_dir, work_file_name)
+        work_abs_path = os.path.abspath(work_abs_path)
+        return work_abs_path
+
     work_full = os.path.abspath(work_file_name)
     work_dir = os.path.dirname(work_full)
     work_file = os.path.basename(work_full)
-
-    base_dir = os.path.dirname(os.path.abspath(base_file_name))
-
     work_rel =  os.path.relpath(work_dir, base_dir)
 
     ret = work_file

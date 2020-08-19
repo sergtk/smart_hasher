@@ -63,7 +63,7 @@ class SimpleInputsTestCase(unittest.TestCase):
             md5_actual = calc.result
             self.assertEqual(md5_expected, md5_actual)
     
-    def test_rel_file_paths(self):
+    def test_rel_file_paths_with_rel(self):
         # data_path = os.getcwd() + '/tests/data'
 
         # Ref: https://stackoverflow.com/questions/21158667/comparing-two-paths-in-python
@@ -71,15 +71,25 @@ class SimpleInputsTestCase(unittest.TestCase):
         work = self.data_path + "/simple.txt"
         base = self.data_path + "/simple.txt.sha1"
         output = util.rel_file_path(work, base)
-        self.assertEqual(os.path.normpath(output), os.path.normpath("simple.txt"))
+        self.assertEqual(os.path.normpath(output), os.path.normpath("simple.txt"), False)
 
         work = self.data_path + "/aaa/bbb/simple.txt"
         base = self.data_path + "/ccc/simple.txt.sha1"
         output = util.rel_file_path(work, base)
         self.assertEqual(os.path.normpath(output), os.path.normpath("../aaa/bbb/simple.txt"))
 
+    def test_rel_file_paths_with_abs(self):
+        # Specify `work` as relative
+        work = "../rel1/rel2/simple.txt"
+        base = "C:/level1/level2/simple.txt.sha1"
         output = util.rel_file_path(work, base, True)
-        self.assertEqual(os.path.normpath(output), os.path.normpath(work))
+        self.assertEqual(os.path.normpath(output), os.path.normpath("C:/level1/rel1/rel2/simple.txt"))
+
+        # Specify `work` as absolute, it shouldn't be changed
+        work = self.data_path + "/aaa/bbb/simple.txt"
+        base = self.data_path + "/ccc/simple.txt.sha1"
+        output = util.rel_file_path(work, base, True)
+        self.assertEqual(os.path.normpath(output), os.path.normpath(work), True)
 
 if __name__ == '__main__':
     run_single_test = True
@@ -87,7 +97,8 @@ if __name__ == '__main__':
         # Run single test
         # https://docs.python.org/3/library/unittest.html#organizing-test-code
         suite = unittest.TestSuite()
-        suite.addTest(SimpleInputsTestCase('test_rel_file_paths'))
+        suite.addTest(SimpleInputsTestCase('test_rel_file_paths_with_rel'))
+        suite.addTest(SimpleInputsTestCase('test_rel_file_paths_with_abs'))
         #suite.run()
         runner = unittest.TextTestRunner()
         runner.run(suite)
