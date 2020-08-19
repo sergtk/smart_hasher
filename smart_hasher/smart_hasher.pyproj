@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>8f5cbe6d-1ea6-4473-80bd-6a5afec4f524</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>smart_hasher.py</StartupFile>
+    <StartupFile>tests\test_command_line.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -13,7 +13,7 @@
     <RootNamespace>smart_hasher</RootNamespace>
     <IsWindowsApplication>False</IsWindowsApplication>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>--input-file J:\tmp.mp4 --input-file J:\tmp1.mp4 --input-file J:\Luminar4Setup.exe --pause-after-file 5 --single-hash-file-name-base J:\hash123  --use-absolute-file-names --force-calc-hash</CommandLineArguments>
+    <CommandLineArguments>--input-file J:\tmp.mp4 --suppress-console-reporting-output --suppress-hash-file-name-postfix</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <InterpreterId>MSBuild|Python 3.7 (32-bit)|$(MSBuildProjectFullPath)</InterpreterId>
     <TestFramework>unittest</TestFramework>

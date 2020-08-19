@@ -27,6 +27,7 @@ class ExitCode(enum.IntEnum):
     DATA_READ_ERROR = 9
     EXCEPTION_THROWN_ON_PROGRAM_EXECUTION = 10
     INVALID_COMMAND_LINE_PARAMETERS = 11
+    APP_USAGE_ERROR = 12
 
     # Ref: https://stackoverflow.com/questions/39268052/how-to-compare-enums-in-python
     # Ref: https://www.geeksforgeeks.org/operator-overloading-in-python/
@@ -40,20 +41,24 @@ exit_code_descriptions = {
     ExitCode.OK_SKIPPED_ALREADY_CALCULATED:     "everything fine. OK may be returned anyway\n     if file(s) is skipped because the hash is already calculated.",
     ExitCode.FAILED:                            "general failure, more specific information is not available.",
     ExitCode.DATA_READ_ERROR:                   "there was error(s) when reading some file(s). Probably hash is not calculated for all files",
+    ExitCode.APP_USAGE_ERROR:                   "incorrect usage of the application",
 }
 
 def get_hash_file_name_postfix():
     global cmd_line_args
 
-    output_file_name = "." + cmd_line_args.hash_algo
+    postfix = ""
+
+    if not cmd_line_args.suppress_hash_file_name_postfix:
+        postfix += "." + cmd_line_args.hash_algo
 
     if cmd_line_args.add_output_file_name_timestamp:
-        output_file_name += "." + start_time_dic["file_postfix"]
+        postfix += "." + start_time_dic["file_postfix"]
 
     if cmd_line_args.hash_file_name_output_postfix:
-        output_file_name += "." + cmd_line_args.hash_file_name_output_postfix[0]
+        postfix += "." + cmd_line_args.hash_file_name_output_postfix[0]
 
-    return output_file_name
+    return postfix
 
 
 # Ref: "Argparse Tutorial" https://docs.python.org/3/howto/argparse.html
@@ -93,6 +98,7 @@ def parse_command_line():
         parser.add_argument('--suppress-output-file-comments', help="Don't add comments to output files. E.g. timestamp when hash generated", action="store_true")
         parser.add_argument('--use-absolute-file-names', help="Use absolute file names in output. If argument is not specified, relative file names used", action="store_true")
         parser.add_argument('--single-hash-file-name-base', help="If specified then all hashes are stored in one file specified as a value for this argument. Final file name include postfix", action="append")
+        parser.add_argument('--suppress-hash-file-name-postfix', help="Suppress adding postfix in file of hash algo name", action="store_true")
 
         # Ref: https://stackoverflow.com/questions/23032514/argparse-disable-same-argument-occurrences
         cmd_line_args = parser.parse_args()
@@ -300,10 +306,15 @@ try:
 
 except SystemExit as se:
     sys.exit(se.code)
+except util.AppUsageError as aue:
+    if not cmd_line_args.suppress_console_reporting_output:
+        print(f"Incorrect usage of the application: {aue.args[0]}", file=sys.stderr)
+    sys.exit(int(ExitCode.APP_USAGE_ERROR))
 except BaseException as ex:
     # Ref: https://stackoverflow.com/a/4564595/13441
     # Wierd that `ex` is not used
-    print(traceback.format_exc())
+    if not cmd_line_args.suppress_console_reporting_output:
+        print(traceback.format_exc(), file=sys.stderr)
 
     # Short message
     # print("Exception thrown:\n", ex)

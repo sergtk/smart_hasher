@@ -55,10 +55,13 @@ class HashPerFileStorage(HashStorageAbstract):
     def has_hash(self, data_file_name):
         # Ref: https://www.geeksforgeeks.org/python-check-if-a-file-or-directory-exists/
         hash_file_name = self.get_hash_file_name(data_file_name)
+        if os.path.abspath(hash_file_name) == os.path.abspath(data_file_name):
+            raise util.AppUsageError(f"It is not allowed to use the same file name for data file and file to store hash: {hash_file_name}")
+
         if not os.path.exists(hash_file_name):
             return False
         if not os.path.isfile(hash_file_name):
-            raise Exception(f"Path '{hash_file_ame}' is dir and can't be used to save hash value")
+            raise util.AppUsageError(f"Path '{hash_file_name}' is dir and can't be used to save hash value")
         return True
 
     def set_hash(self, data_file_name, hash_value):
@@ -114,7 +117,7 @@ class SingleFileHashesStorage(HashStorageAbstract):
                 # print(f"line for work: {line}")
                 match = hash_record_pattern.fullmatch(line)
                 if match is None:
-                    raise Exception(self.__input_hash_file_error_message("Input file with hashes has wrong format", hash_file_name, lineIndex, line))
+                    raise util.AppUsageError(self.__input_hash_file_error_message("Input file with hashes has wrong format", hash_file_name, lineIndex, line))
                 hash = match.group("hash").lower()
                 data_file_name = match.group("file")
 
@@ -122,7 +125,7 @@ class SingleFileHashesStorage(HashStorageAbstract):
                 data_file_name =  util.rel_file_path(data_file_name, hash_file_name, True)
 
                 if self.hash_data.get(data_file_name) is not None:
-                    raise Exception(self.__input_hash_file_error_message("Input hash file contains duplicated entry for file '{data_file_name}'", hash_file_name, lineIndex, line))
+                    raise util.AppUsageError(self.__input_hash_file_error_message("Input hash file contains duplicated entry for file '{data_file_name}'", hash_file_name, lineIndex, line))
                 self.hash_data[data_file_name] = hash
 
                 line = f.readline()

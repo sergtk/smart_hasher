@@ -92,3 +92,12 @@ def rel_file_path(work_file_name, base_file_name, return_absolute_path = False):
         ret = str(os.path.join(work_rel, ret))
 
     return ret
+
+
+# Ref: https://docs.python.org/3/library/exceptions.html
+# Ref: https://stackoverflow.com/questions/1319615/proper-way-to-declare-custom-exceptions-in-modern-python
+class AppUsageError(Exception):
+    """
+    This exception is raised when error occurs due to the incorrect usage of the application by user
+    """
+    pass

@@ -174,6 +174,18 @@ class SimpleCommandLineTestCase(unittest.TestCase):
 
         self.assertEqual(hash_expected, hash_actual, 'Wrong hash for input file "file1.txt". Expected: "{}", actual: "{}"'.format(hash_expected, hash_actual))
 
+    def test_error_report_on_equal_data_and_hash_file_names(self):
+        data_file_name = f'{self.data_path}/file1.txt';
+        work_file_name = f'{self.work_path}/file1.txt';
+
+        shutil.copyfile(data_file_name, work_file_name)
+
+        exit_code = os.system(f'smart_hasher --input-file {work_file_name} --suppress-console-reporting-output --suppress-hash-file-name-postfix')
+        self.assertEqual(exit_code, smart_hasher.ExitCode.APP_USAGE_ERROR)
+
+        # Ref: https://docs.python.org/3.7/library/filecmp.html
+        self.assertTrue(filecmp.cmp(data_file_name, work_file_name, shallow=False), f"Input data file is corrupted! ({work_file_name})")
+
     #@unittest.skip("This is sandbox, actually not unit test")
     def _test_sandbox(self):
         # Ref: https://docs.python.org/3/library/tracemalloc.html
@@ -205,7 +217,7 @@ if __name__ == '__main__':
         # Run single test
         # https://docs.python.org/3/library/unittest.html#organizing-test-code
         suite = unittest.TestSuite()
-        suite.addTest(SimpleCommandLineTestCase('test_calc_hash_with_comments_in_output_file'))
+        suite.addTest(SimpleCommandLineTestCase('test_error_report_on_equal_data_and_hash_file_names'))
         runner = unittest.TextTestRunner()
         runner.run(suite)
     else:
