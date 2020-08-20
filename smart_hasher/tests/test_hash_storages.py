@@ -74,6 +74,23 @@ class SingleFileHashesStorageTestCase(unittest.TestCase):
 
         self.assertTrue(filecmp.cmp(work_hash_storage_file, data_hash_storage_file + ".save", shallow=False), f"Wrong data on output (file '{data_hash_storage_file}')")
 
+    def test_cli_wrong_input_hash_file(self):
+        for fi in [1, 2, 3]:
+            hash_storage_file = f"dummy_hash_storage_4_wrong_format_{fi}.sha1"
+            tests.util_test.clean_work_dir()
+
+            data_hash_storage_file = os.path.join(self.data_path, "hash_storages", hash_storage_file)
+            work_hash_storage_file = os.path.join(self.work_path, hash_storage_file)
+            shutil.copyfile(data_hash_storage_file, work_hash_storage_file)
+
+            cmd_line = f"smart_hasher --input-folder {self.work_path} --input-folder-file-mask-exclude * --suppress-console-reporting-output " \
+                        f"--single-hash-file-name-base {work_hash_storage_file} --suppress-hash-file-name-postfix --use-absolute-file-names"
+
+            # Run command which does not handle any files
+            exit_code = os.system(cmd_line)
+            # --suppress-console-reporting-output
+            self.assertEqual(exit_code, smart_hasher.ExitCode.APP_USAGE_ERROR)
+
         
 
 if __name__ == '__main__':
@@ -82,7 +99,7 @@ if __name__ == '__main__':
         # Run single test
         # https://docs.python.org/3/library/unittest.html#organizing-test-code
         suite = unittest.TestSuite()
-        suite.addTest(SingleFileHashesStorageTestCase('test_cli_simple_hash_storages_abs'))
+        suite.addTest(SingleFileHashesStorageTestCase('test_cli_wrong_input_hash_file'))
         runner = unittest.TextTestRunner()
         runner.run(suite)
     else:
