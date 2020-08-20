@@ -3,11 +3,12 @@ import unittest
 #import smart_hasher
 import hash_calc
 import util
+import tests.util_test
 
 class SimpleInputsTestCase(unittest.TestCase):
     """This class contains testing simple functionality"""
 
-    data_path = os.getcwd() + '/tests/data'
+    data_path = tests.util_test.get_data_path()
 
     def test_calc_hash_for_one_small_file(self):
         # Ref: https://stackoverflow.com/questions/5137497/find-current-directory-and-files-directory
@@ -78,6 +79,12 @@ class SimpleInputsTestCase(unittest.TestCase):
         output = util.rel_file_path(work, base)
         self.assertEqual(os.path.normpath(output), os.path.normpath("../aaa/bbb/simple.txt"))
 
+        # Provide data when relative path can't be obtained. So absolute path should be preserved
+        work = "E:\\aaa.txt"
+        base = "J:\\bbb.txt"
+        output = util.rel_file_path(work, base)
+        self.assertEqual(os.path.normcase(os.path.normpath(output)), os.path.normcase(os.path.normpath(work)), False)
+
     def test_rel_file_paths_with_abs(self):
         # Specify `work` as relative
         work = "../rel1/rel2/simple.txt"
@@ -97,7 +104,7 @@ if __name__ == '__main__':
         # Run single test
         # https://docs.python.org/3/library/unittest.html#organizing-test-code
         suite = unittest.TestSuite()
-        suite.addTest(SimpleInputsTestCase('test_rel_file_paths_with_abs'))
+        suite.addTest(SimpleInputsTestCase('test_rel_file_paths_with_rel'))
         #suite.run()
         runner = unittest.TextTestRunner()
         runner.run(suite)

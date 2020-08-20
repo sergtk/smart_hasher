@@ -7,7 +7,7 @@ import filecmp
 import asyncio
 import tracemalloc
 import filecmp
-import tests.test_util
+import tests.util_test
 
 class SimpleCommandLineTestCase(unittest.TestCase):
     """This class contains testing simple functionality from command line"""
@@ -16,13 +16,13 @@ class SimpleCommandLineTestCase(unittest.TestCase):
         # Ref: https://docs.python.org/3/library/unittest.html#unittest.TestCase.setUpClass
         # Ref: https://stackoverflow.com/questions/17353213/init-for-unittest-testcase
         # Ref: https://radek.io/2011/07/21/static-variables-and-methods-in-python/
-        self.data_path = tests.test_util.get_data_path()
-        self.work_path = tests.test_util.get_work_path()
-        tests.test_util.clean_work_dir()
+        self.data_path = tests.util_test.get_data_path()
+        self.work_path = tests.util_test.get_work_path()
+        tests.util_test.clean_work_dir()
 
     # Ref: https://docs.python.org/3/library/unittest.html#unittest.TestCase.tearDown
     def  tearDown(self):
-        tests.test_util.clean_work_dir()
+        tests.util_test.clean_work_dir()
 
     def test_calc_hash_for_one_small_file_sha1(self):
 

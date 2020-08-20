@@ -63,6 +63,7 @@ def rel_file_path(work_file_name, base_file_name, return_absolute_path = False):
     if return_absolute_path == False
         then returns file with path for `work_file_name` relative to `base_file_name`.
         In other words this function show how to traverse from one file to other.
+        Note, if `work_file_name` and `base_file_name` point to different disks then relative path can't be returned, so absolute path returned.
 
     if return_absolute_path == True
         then returns absolute path for `work_file_name`

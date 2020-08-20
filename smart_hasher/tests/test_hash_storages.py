@@ -2,7 +2,7 @@ import smart_hasher
 import unittest
 import os
 import shutil
-import tests.test_util
+import tests.util_test
 import hash_storages
 import filecmp
 
@@ -12,18 +12,18 @@ class SingleFileHashesStorageTestCase(unittest.TestCase):
         # Ref: https://docs.python.org/3/library/unittest.html#unittest.TestCase.setUpClass
         # Ref: https://stackoverflow.com/questions/17353213/init-for-unittest-testcase
         # Ref: https://radek.io/2011/07/21/static-variables-and-methods-in-python/
-        self.data_path = tests.test_util.get_data_path()
-        self.work_path = tests.test_util.get_work_path()
-        tests.test_util.clean_work_dir()
+        self.data_path = tests.util_test.get_data_path()
+        self.work_path = tests.util_test.get_work_path()
+        tests.util_test.clean_work_dir()
 
     # Ref: https://docs.python.org/3/library/unittest.html#unittest.TestCase.tearDown
     def  tearDown(self):
-        tests.test_util.clean_work_dir()
+        tests.util_test.clean_work_dir()
 
     def test_hash_storages_load_save(self):
         hash_storage_file = "dummy_hash_storage_2_general_rel.sha1"
         #hash_storage_file = "dummy_hash_storage_5_non-ascii.sha1"
-        tests.test_util.clean_work_dir()
+        tests.util_test.clean_work_dir()
 
         work_hash_storage_file = os.path.join(self.work_path, hash_storage_file)
         data_hash_storage_file = os.path.join(self.data_path, "hash_storages", hash_storage_file)
@@ -40,7 +40,7 @@ class SingleFileHashesStorageTestCase(unittest.TestCase):
 
     def test_cli_simple_hash_storages_rel(self):
         for hash_storage_file in ["dummy_hash_storage_2_general_rel.sha1", "dummy_hash_storage_5_non-ascii.sha1"]:
-            tests.test_util.clean_work_dir()
+            tests.util_test.clean_work_dir()
 
             data_hash_storage_file = os.path.join(self.data_path, "hash_storages", hash_storage_file)
             work_hash_storage_file = os.path.join(self.work_path, hash_storage_file)
@@ -58,7 +58,7 @@ class SingleFileHashesStorageTestCase(unittest.TestCase):
 
     def test_cli_simple_hash_storages_abs(self):
         hash_storage_file = "dummy_hash_storage_1_general_abs.sha1"
-        tests.test_util.clean_work_dir()
+        tests.util_test.clean_work_dir()
 
         data_hash_storage_file = os.path.join(self.data_path, "hash_storages", hash_storage_file)
         work_hash_storage_file = os.path.join(self.work_path, hash_storage_file)
