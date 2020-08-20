@@ -12,6 +12,11 @@ class HashStorageAbstract(abc.ABC):
         self.hash_file_header_comments = None # The default is None to throw exception if not assigned so to catch error early
         self.suppress_hash_file_comments = False
 
+    def _check_data_hash_files_names_equal(self, data_file_name, hash_file_name):
+        # Ref: https://docs.python.org/3/library/os.path.html#os.path.realpath
+        if os.path.realpath(data_file_name) == os.path.realpath(hash_file_name):
+            raise util.AppUsageError(f"Data and hash file names are the same: '{data_file_name}'. Data and hash file names should specify different files")
+
     @abc.abstractmethod
     def load_hashes_info(self): pass
 
@@ -50,13 +55,13 @@ class HashPerFileStorage(HashStorageAbstract):
 
     def get_hash_file_name(self, data_file_name):
         ret = os.path.abspath(data_file_name) + self.hash_file_name_postfix
+        self._check_data_hash_files_names_equal(data_file_name, ret)
         return ret
 
     def has_hash(self, data_file_name):
         # Ref: https://www.geeksforgeeks.org/python-check-if-a-file-or-directory-exists/
         hash_file_name = self.get_hash_file_name(data_file_name)
-        if os.path.abspath(hash_file_name) == os.path.abspath(data_file_name):
-            raise util.AppUsageError(f"It is not allowed to use the same file name for data file and file to store hash: {hash_file_name}")
+        self._check_data_hash_files_names_equal(data_file_name, hash_file_name)
 
         if not os.path.exists(hash_file_name):
             return False
@@ -66,6 +71,7 @@ class HashPerFileStorage(HashStorageAbstract):
 
     def set_hash(self, data_file_name, hash_value):
         hash_file_name = self.get_hash_file_name(data_file_name)
+        self._check_data_hash_files_names_equal(data_file_name, hash_file_name)
         
         # Ref: https://stackoverflow.com/questions/6159900/correct-way-to-write-line-to-file
         with open(hash_file_name, 'w') as hash_file:
@@ -165,12 +171,16 @@ class SingleFileHashesStorage(HashStorageAbstract):
         return ret
 
     def has_hash(self, data_file_name):
+        self._check_data_hash_files_names_equal(data_file_name, self.get_hash_file_name(None))
+
         # Ref: https://docs.python.org/3.2/library/os.path.html#os.path.normcase
         fn = os.path.normcase(os.path.abspath(data_file_name))
         ret = fn in self.hash_data
         return ret
 
     def set_hash(self, data_file_name, hash_value):
+        self._check_data_hash_files_names_equal(data_file_name, self.get_hash_file_name(None))
+
         # Ref: https://docs.python.org/3.2/library/os.path.html#os.path.normcase
         fn = os.path.normcase(os.path.abspath(data_file_name))
         self.hash_data[fn] = hash_value

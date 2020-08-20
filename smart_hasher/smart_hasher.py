@@ -283,6 +283,8 @@ def fill_start_time_dic():
     #pprint(start_time_dic)
 
 try:
+    # breakpoint()
+
     if __name__ == '__main__':
         fill_start_time_dic()
 
@@ -298,8 +300,9 @@ try:
 
         hash_storage.hash_file_name_postfix = get_hash_file_name_postfix()
         hash_storage.use_absolute_file_names = cmd_line_args.use_absolute_file_names
-        with hash_storage:
-            e = handle_input_files(hash_storage)
+        hash_storage.load_hashes_info()
+        e = handle_input_files(hash_storage)
+        hash_storage_save_hashes_info() # Note, hash info is not stored on exception, because it is not clear if we can trust to that data
 
         #print("e = {0}".format(e))
         sys.exit(int(e))
@@ -308,7 +311,7 @@ except SystemExit as se:
     sys.exit(se.code)
 except util.AppUsageError as aue:
     if not cmd_line_args.suppress_console_reporting_output:
-        print(f"Incorrect usage of the application: {aue.args[0]}", file=sys.stderr)
+        print(f"\nIncorrect usage of the application: {aue.args[0]}", file=sys.stderr)
     sys.exit(int(ExitCode.APP_USAGE_ERROR))
 except BaseException as ex:
     # Ref: https://stackoverflow.com/a/4564595/13441

@@ -76,8 +76,9 @@ class SingleFileHashesStorageTestCase(unittest.TestCase):
 
     def test_cli_wrong_input_hash_file(self):
         for fi in [1, 2, 3]:
-            hash_storage_file = f"dummy_hash_storage_4_wrong_format_{fi}.sha1"
             tests.util_test.clean_work_dir()
+
+            hash_storage_file = f"dummy_hash_storage_4_wrong_format_{fi}.sha1"
 
             data_hash_storage_file = os.path.join(self.data_path, "hash_storages", hash_storage_file)
             work_hash_storage_file = os.path.join(self.work_path, hash_storage_file)
@@ -88,9 +89,33 @@ class SingleFileHashesStorageTestCase(unittest.TestCase):
 
             # Run command which does not handle any files
             exit_code = os.system(cmd_line)
+            self.assertEqual(exit_code, smart_hasher.ExitCode.APP_USAGE_ERROR)
+            self.assertTrue(filecmp.cmp(work_hash_storage_file, data_hash_storage_file, shallow=False), f"Invalid input hash file is corrupted (file '{work_hash_storage_file}')")
+
+
+    # Test that error reported when data file and hash file are the same
+    def test_cli_error_on_equal_data_and_hash_file_names(self):
+
+        for single_hash_file in [False, True]:
+            tests.util_test.clean_work_dir()
+
+            hash_storage_file = f"dummy_hash_storage_1_general_abs.sha1"
+
+            data_hash_storage_file = os.path.join(self.data_path, "hash_storages", hash_storage_file)
+            work_hash_storage_file = os.path.join(self.work_path, hash_storage_file)
+            shutil.copyfile(data_hash_storage_file, work_hash_storage_file)
+
+            # cmd_line = f"smart_hasher --input-file {work_hash_storage_file} --single-hash-file-name-base {work_hash_storage_file} --suppress-hash-file-name-postfix " \
+            cmd_line = f"smart_hasher --input-file {work_hash_storage_file} --suppress-hash-file-name-postfix" \
+                        " --suppress-console-reporting-output"
+            if single_hash_file:
+                cmd_line += f" --single-hash-file-name-base {work_hash_storage_file}"
+
+            # Run command which does not handle any files
+            exit_code = os.system(cmd_line)
             # --suppress-console-reporting-output
             self.assertEqual(exit_code, smart_hasher.ExitCode.APP_USAGE_ERROR)
-
+            self.assertTrue(filecmp.cmp(work_hash_storage_file, data_hash_storage_file, shallow=False), f"Input hash file is corrupted (file '{work_hash_storage_file}')")
         
 
 if __name__ == '__main__':
@@ -99,7 +124,7 @@ if __name__ == '__main__':
         # Run single test
         # https://docs.python.org/3/library/unittest.html#organizing-test-code
         suite = unittest.TestSuite()
-        suite.addTest(SingleFileHashesStorageTestCase('test_cli_wrong_input_hash_file'))
+        suite.addTest(SingleFileHashesStorageTestCase('test_cli_error_on_equal_data_and_hash_file_names'))
         runner = unittest.TextTestRunner()
         runner.run(suite)
     else:
