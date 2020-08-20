@@ -72,7 +72,10 @@ def rel_file_path(work_file_name, base_file_name, return_absolute_path = False):
     """
     # Ref: https://stackoverflow.com/questions/10149263/extract-a-part-of-the-filepath-a-directory-in-python
     # Ref: https://stackoverflow.com/a/7288073/13441
-    
+
+    work_file_name = os.path.normcase(work_file_name)
+    base_file_name = os.path.normcase(base_file_name)
+
     base_dir = os.path.dirname(os.path.abspath(base_file_name))
 
     if return_absolute_path:
@@ -85,7 +88,17 @@ def rel_file_path(work_file_name, base_file_name, return_absolute_path = False):
     work_full = os.path.abspath(work_file_name)
     work_dir = os.path.dirname(work_full)
     work_file = os.path.basename(work_full)
-    work_rel =  os.path.relpath(work_dir, base_dir)
+
+    # Ref: https://stackoverflow.com/questions/22328350/check-that-a-string-starts-with-a-drive-letter-in-python
+    # Ref: https://www.geeksforgeeks.org/python-os-path-splitdrive-method/
+    # Ref: https://docs.python.org/3/library/os.path.html#os.path.splitdrive
+    work_drive, _ = os.path.splitdrive(work_dir)
+    base_drive, _ = os.path.splitdrive(base_dir)
+    if work_drive == base_drive:
+        work_rel =  os.path.relpath(work_dir, base_dir)
+    else:
+        # if drives differs it is not possible to get relative path, so path returned unchanged
+        work_rel = work_dir
 
     ret = work_file
     if (work_rel != "."):

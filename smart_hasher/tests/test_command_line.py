@@ -7,6 +7,7 @@ import filecmp
 import asyncio
 import tracemalloc
 import filecmp
+import tests.test_util
 
 class SimpleCommandLineTestCase(unittest.TestCase):
     """This class contains testing simple functionality from command line"""
@@ -15,25 +16,13 @@ class SimpleCommandLineTestCase(unittest.TestCase):
         # Ref: https://docs.python.org/3/library/unittest.html#unittest.TestCase.setUpClass
         # Ref: https://stackoverflow.com/questions/17353213/init-for-unittest-testcase
         # Ref: https://radek.io/2011/07/21/static-variables-and-methods-in-python/
-        self.data_path = os.getcwd() + '/tests/data'
-        self.work_path = os.getcwd() + '/tests/tmp'
-        self.clean_work_dir()
+        self.data_path = tests.test_util.get_data_path()
+        self.work_path = tests.test_util.get_work_path()
+        tests.test_util.clean_work_dir()
 
     # Ref: https://docs.python.org/3/library/unittest.html#unittest.TestCase.tearDown
     def  tearDown(self):
-        self.clean_work_dir()
-
-    def clean_work_dir(self):
-        # Ref: https://stackoverflow.com/questions/185936/how-to-delete-the-contents-of-a-folder
-        for filename in os.listdir(self.work_path):
-            file_path = os.path.join(self.work_path, filename)
-            try:
-                if os.path.isfile(file_path) or os.path.islink(file_path):
-                    os.unlink(file_path)
-                elif os.path.isdir(file_path):
-                    shutil.rmtree(file_path)
-            except Exception as e:
-                raise Exception(f'Failed to delete "{file_path}"', e)
+        tests.test_util.clean_work_dir()
 
     def test_calc_hash_for_one_small_file_sha1(self):
 

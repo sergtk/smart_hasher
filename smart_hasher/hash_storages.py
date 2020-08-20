@@ -1,7 +1,6 @@
 import abc
 import os
 import util
-import collections
 import re
 
 class HashStorageAbstract(abc.ABC):
@@ -99,7 +98,7 @@ class SingleFileHashesStorage(HashStorageAbstract):
             return
 
         # Dictionary stores pair "absolute file name" -> "hash"
-        self.hash_data = collections.OrderedDict()
+        self.hash_data = dict()
 
         comment_pattern = re.compile("\s*(#.*)?\n?")
         # Ref: https://stackoverflow.com/questions/50618116/regex-for-finding-file-paths
@@ -122,7 +121,8 @@ class SingleFileHashesStorage(HashStorageAbstract):
                 data_file_name = match.group("file")
 
                 #data_file_name =  os.path.abspath(data_file_name)
-                data_file_name =  util.rel_file_path(data_file_name, hash_file_name, True)
+                data_file_name = util.rel_file_path(data_file_name, hash_file_name, True)
+                data_file_name = os.path.normcase(data_file_name)
 
                 if self.hash_data.get(data_file_name) is not None:
                     raise util.AppUsageError(self.__input_hash_file_error_message("Input hash file contains duplicated entry for file '{data_file_name}'", hash_file_name, lineIndex, line))
@@ -137,14 +137,21 @@ class SingleFileHashesStorage(HashStorageAbstract):
             if not self.suppress_hash_file_comments:
                 hash_file.write(self.hash_file_header_comments)
 
+            hash_data_sorted = []
+
             # Ref: https://stackoverflow.com/questions/3294889/iterating-over-dictionaries-using-for-loops
+            #for data_file_name, hash in self.hash_data.items():
             for data_file_name, hash in self.hash_data.items():
                 if self.use_absolute_file_names:
                     data_file_name_user = data_file_name
                     assert os.path.isabs(data_file_name_user)
                 else:
                     data_file_name_user = util.rel_file_path(data_file_name, hash_file_name, False)
-                hash_file.write(f"{hash} *{data_file_name_user}\n")
+                hash_data_sorted.append((data_file_name_user, hash))
+
+            hash_data_sorted.sort(key = lambda v : (os.path.normcase(v[0]), v[0])) # Compare in lower case. If equal, then compare original strings
+            for data_file_name, hash in hash_data_sorted:
+                hash_file.write(f"{hash} *{data_file_name}\n")
 
             if not self.suppress_hash_file_comments:
                 hash_file.write("# End of file\n")
@@ -154,10 +161,12 @@ class SingleFileHashesStorage(HashStorageAbstract):
         return ret
 
     def has_hash(self, data_file_name):
-        fn = os.path.abspath(data_file_name)
+        # Ref: https://docs.python.org/3.2/library/os.path.html#os.path.normcase
+        fn = os.path.normcase(os.path.abspath(data_file_name))
         ret = fn in self.hash_data
         return ret
 
     def set_hash(self, data_file_name, hash_value):
-        fn = os.path.abspath(data_file_name)
+        # Ref: https://docs.python.org/3.2/library/os.path.html#os.path.normcase
+        fn = os.path.normcase(os.path.abspath(data_file_name))
         self.hash_data[fn] = hash_value
