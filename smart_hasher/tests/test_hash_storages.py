@@ -22,6 +22,7 @@ class SingleFileHashesStorageTestCase(unittest.TestCase):
 
     def test_hash_storages_load_save(self):
         hash_storage_file = "dummy_hash_storage_2_general_rel.sha1"
+        #hash_storage_file = "dummy_hash_storage_5_non-ascii.sha1"
         tests.test_util.clean_work_dir()
 
         work_hash_storage_file = os.path.join(self.work_path, hash_storage_file)
@@ -35,31 +36,44 @@ class SingleFileHashesStorageTestCase(unittest.TestCase):
         hash_storage.load_hashes_info()
         hash_storage.save_hashes_info()
 
-        self.assertTrue(filecmp.cmp(work_hash_storage_file, data_hash_storage_file + ".save", shallow=False), f"Wrong data on output")
+        self.assertTrue(filecmp.cmp(work_hash_storage_file, data_hash_storage_file + ".save", shallow=False), f"Wrong data on output '{data_hash_storage_file}'")
 
-    # TODO: use relative file names on output
-    @unittest.skip("not implemented")
     def test_cli_simple_hash_storages_rel(self):
-        for hash_storage_file in ["dummy_hash_storage_1_general_rel.sha1", "dummy_hash_storage_4_non-ascii-UTF-8.sha1"]:
+        for hash_storage_file in ["dummy_hash_storage_2_general_rel.sha1", "dummy_hash_storage_5_non-ascii.sha1"]:
             tests.test_util.clean_work_dir()
 
-            full_hash_storage_file = os.path.join(self.work_path, hash_storage_file)
-            shutil.copyfile(os.path.join(self.data_path, "hash_storages", hash_storage_file), full_hash_storage_file)
+            data_hash_storage_file = os.path.join(self.data_path, "hash_storages", hash_storage_file)
+            work_hash_storage_file = os.path.join(self.work_path, hash_storage_file)
+            shutil.copyfile(data_hash_storage_file, work_hash_storage_file)
 
             cmd_line = f"smart_hasher --input-folder {self.work_path} --input-folder-file-mask-exclude * --suppress-output-file-comments " \
-                       f"--single-hash-file-name-base {full_hash_storage_file} --suppress-hash-file-name-postfix"
+                       f"--single-hash-file-name-base {work_hash_storage_file} --suppress-hash-file-name-postfix"
 
             # Run command which does not handle any files
             exit_code = os.system(cmd_line)
             # --suppress-console-reporting-output
             self.assertEqual(exit_code, smart_hasher.ExitCode.OK)
 
+            self.assertTrue(filecmp.cmp(work_hash_storage_file, data_hash_storage_file + ".save", shallow=False), f"Wrong data on output (file '{data_hash_storage_file}')")
 
-    # TODO: use absolute file names on output
-    # input file: dummy_hash_storage_1_general_abs.sha1
-    @unittest.skip("not implemented")
     def test_cli_simple_hash_storages_abs(self):
-        pass
+        hash_storage_file = "dummy_hash_storage_1_general_abs.sha1"
+        tests.test_util.clean_work_dir()
+
+        data_hash_storage_file = os.path.join(self.data_path, "hash_storages", hash_storage_file)
+        work_hash_storage_file = os.path.join(self.work_path, hash_storage_file)
+        shutil.copyfile(data_hash_storage_file, work_hash_storage_file)
+
+        cmd_line = f"smart_hasher --input-folder {self.work_path} --input-folder-file-mask-exclude * --suppress-output-file-comments " \
+                    f"--single-hash-file-name-base {work_hash_storage_file} --suppress-hash-file-name-postfix --use-absolute-file-names"
+
+        # Run command which does not handle any files
+        exit_code = os.system(cmd_line)
+        # --suppress-console-reporting-output
+        self.assertEqual(exit_code, smart_hasher.ExitCode.OK)
+
+        self.assertTrue(filecmp.cmp(work_hash_storage_file, data_hash_storage_file + ".save", shallow=False), f"Wrong data on output (file '{data_hash_storage_file}')")
+
         
 
 if __name__ == '__main__':
@@ -68,7 +82,7 @@ if __name__ == '__main__':
         # Run single test
         # https://docs.python.org/3/library/unittest.html#organizing-test-code
         suite = unittest.TestSuite()
-        suite.addTest(SingleFileHashesStorageTestCase('test_hash_storages_load_save'))
+        suite.addTest(SingleFileHashesStorageTestCase('test_cli_simple_hash_storages_abs'))
         runner = unittest.TextTestRunner()
         runner.run(suite)
     else:

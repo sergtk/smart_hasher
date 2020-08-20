@@ -2,6 +2,7 @@ import abc
 import os
 import util
 import re
+import locale
 
 class HashStorageAbstract(abc.ABC):
 
@@ -102,7 +103,8 @@ class SingleFileHashesStorage(HashStorageAbstract):
 
         comment_pattern = re.compile("\s*(#.*)?\n?")
         # Ref: https://stackoverflow.com/questions/50618116/regex-for-finding-file-paths
-        hash_record_pattern = re.compile("(?P<hash>[0-9A-Za-z]+)\s+\*(?P<file>[\\\\/\w.:]+)\n?")
+        # Ref: https://stackoverflow.com/questions/2758921/regular-expression-that-finds-and-replaces-non-ascii-characters-with-python
+        hash_record_pattern = re.compile("(?P<hash>[0-9A-Za-z]+)\s+\*(?P<file>[\\\\/\w.: \u0080-\uFFFF]+)\n?")
 
         with open(hash_file_name, "r") as f:
             line = f.readline()
@@ -149,6 +151,8 @@ class SingleFileHashesStorage(HashStorageAbstract):
                     data_file_name_user = util.rel_file_path(data_file_name, hash_file_name, False)
                 hash_data_sorted.append((data_file_name_user, hash))
 
+            # Ref: https://stackoverflow.com/questions/1097908/how-do-i-sort-unicode-strings-alphabetically-in-python
+            #locale.setlocale(locale.LC_ALL, "")
             hash_data_sorted.sort(key = lambda v : (os.path.normcase(v[0]), v[0])) # Compare in lower case. If equal, then compare original strings
             for data_file_name, hash in hash_data_sorted:
                 hash_file.write(f"{hash} *{data_file_name}\n")
