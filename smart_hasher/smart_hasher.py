@@ -83,22 +83,29 @@ def parse_command_line():
     try:
         # Ref: https://www.programcreek.com/python/example/6706/argparse.RawDescriptionHelpFormatter
         parser = argparse.ArgumentParser(description=description, formatter_class=argparse.RawDescriptionHelpFormatter)
-        parser.add_argument('--input-file', '-if', action="append", help="Specify one or more input files")
-        parser.add_argument('--input-folder', '-ifo', action="append", help="Specify one or more input folders. All files in folder are handled recursively")
+        parser.add_argument('--input-file', '-if', action="append", help="Specify input files. Key can be specified multiple times")
+        parser.add_argument('--input-folder', '-ifo', action="append", help="Specify input folders. All files in folder are handled recursively. Key can be specified multiple times")
         parser.add_argument('--input-folder-file-mask-include', '-ifoi', help="Specify file mask to include for input folder. All files in the folder considered if not specified. Separate multiple masks with semicolon (;)")
         parser.add_argument('--input-folder-file-mask-exclude', '-ifoe', help="Specify file mask to exclude for input folder. It is applied after --input-folder-file-mask-include. Separate multiple masks with semicolon (;)")
-        parser.add_argument('--hash-file-name-output-postfix', '-op', action='append', help="Specify postfix, which will be appended to the end of output file names. This is to specify for different contextes, e.g. if file name ends with \".md5\", then it ends with \"md5.<value>\"")
+        parser.add_argument('--hash-file-name-output-postfix', '-op', action='append',
+                            help="Specify postfix, which will be appended to the end of output file names. This is to specify for different contextes, "
+                            "e.g. if file name ends with \".md5\", then it ends with \"md5.<value>\"")
         parser.add_argument('--hash-algo', help=f"Specify hash algo (default: {hash_calc.FileHashCalc.hash_algo_default_str})", default=hash_calc.FileHashCalc.hash_algo_default_str, choices=hash_calc.FileHashCalc.hash_algos)
         parser.add_argument('--suppress-console-reporting-output', '-so', help="Suppress console output with progress reporting", action="store_true")
         parser.add_argument('--pause-after-file', '-pf', help="Specify pause after every file handled, in seconds. Note, if file is skipped, then no pause applied", type=int)
         parser.add_argument('--retry-count-on-data-read-error', help=f"Specify count of retries on data read error (default: {calc.retry_count_on_data_read_error})", default=calc.retry_count_on_data_read_error, type=int)
         parser.add_argument('--retry-pause-on-data-read-error', help=f"Specify pause before retrying on data read error, in seconds (default: {calc.retry_pause_on_data_read_error})", default=calc.retry_pause_on_data_read_error, type=int)
         parser.add_argument('--force-calc-hash', '-fch', help="If specified than hash calculated always. If not, then hash is not calculated if file with hash already exist", action="store_true")
-        parser.add_argument('--add-output-file-name-timestamp', help="Add timestamp to the output file names. Note, that the time on program run taken. So it may differ from the file creation time, but it is equal for all files in one run", action="store_true")
+        parser.add_argument('--add-output-file-name-timestamp', action="store_true",
+                            help="Add timestamp to the output file names. Note, that the time on program run taken. So it may differ from the file creation time, "
+                            "but it is equal for all files in one run")
         parser.add_argument('--suppress-output-file-comments', help="Don't add comments to output files. E.g. timestamp when hash generated", action="store_true")
         parser.add_argument('--use-absolute-file-names', help="Use absolute file names in output. If argument is not specified, relative file names used", action="store_true")
         parser.add_argument('--single-hash-file-name-base', help="If specified then all hashes are stored in one file specified as a value for this argument. Final file name include postfix", action="append")
-        parser.add_argument('--suppress-hash-file-name-postfix', help="Suppress adding postfix in file of hash algo name", action="store_true")
+        parser.add_argument('--suppress-hash-file-name-postfix', help="Suppress adding postfix in the hash file name for hash algo name", action="store_true")
+        parser.add_argument('--preserve-unused-hash-records', action="store_true",
+                            help="This key is works with --single-hash-file-name-base. By default if file with hashes already exists then records for files which not handled deleted to avoid. "
+                            "If this key specified, then they preserved")
 
         # Ref: https://stackoverflow.com/questions/23032514/argparse-disable-same-argument-occurrences
         cmd_line_args = parser.parse_args()
@@ -214,7 +221,8 @@ def handle_input_files(hash_storage: hash_storages.HashStorageAbstract):
 
     hash_storage.hash_file_header_comments = \
         f"# Timestamp of hash calculation: {start_time_dic['str']}\n" \
-        f"# Hash algorithm: {cmd_line_args.hash_algo}\n"
+        f"# Hash algorithm: {cmd_line_args.hash_algo}\n" \
+        f"# File generated by smart_hasher (https://github.com/sergtk/smart_hasher)\n"
     hash_storage.suppress_hash_file_comments = cmd_line_args.suppress_output_file_comments
 
     input_file_names = []
@@ -234,7 +242,6 @@ def handle_input_files(hash_storage: hash_storages.HashStorageAbstract):
                         continue
                     # print("{0} -> {1}".format(dir_name, base_file_name));
                     input_file_names.append(input_file_name)
-
 
     # remove duplicates
     # Ref: https://www.w3schools.com/python/python_howto_remove_duplicates.asp
@@ -295,6 +302,7 @@ try:
         if cmd_line_args.single_hash_file_name_base:
             hash_storage = hash_storages.SingleFileHashesStorage()
             hash_storage.single_hash_file_name_base = cmd_line_args.single_hash_file_name_base[0]
+            hash_storage.preserve_unused_hash_records = cmd_line_args.preserve_unused_hash_records
         else:
             hash_storage = hash_storages.HashPerFileStorage()
 

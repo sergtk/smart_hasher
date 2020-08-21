@@ -1,0 +1,5 @@
+it is good to quickly diagnose such issues. And if the job is interrupted,
+it should be easy to continue, preserving previously generated hashes.
+Utility just check if hash already calculated, and skip calulcation for that files.
+So it is easy to resume the work, just to rerun the util.
+It just skips what is already calculated.

@@ -90,6 +90,8 @@ class SingleFileHashesStorage(HashStorageAbstract):
         super().__init__()
         #self.single_hash_file_name_base = single_hash_file_name_base
         self.single_hash_file_name_base = None
+        self.hash_data = dict()
+        self.preserve_unused_hash_records = False
 
     def __input_hash_file_error_message(self, error_message, hash_file_name, lineIndex, line):
         return f"{error_message}.\n    File {hash_file_name}, Line {lineIndex}: {line[0:200]}"
@@ -134,7 +136,10 @@ class SingleFileHashesStorage(HashStorageAbstract):
 
                 if self.hash_data.get(data_file_name) is not None:
                     raise util.AppUsageError(self.__input_hash_file_error_message("Input hash file contains duplicated entry for file '{data_file_name}'", hash_file_name, lineIndex, line))
-                self.hash_data[data_file_name] = hash
+                
+                # False in tuple specify that element was not accessed. This mean that it should not be saved in output file.
+                # True should be later specfieid to save info
+                self.hash_data[data_file_name] = (hash, False)
 
                 line = f.readline()
                 lineIndex += 1
@@ -160,8 +165,10 @@ class SingleFileHashesStorage(HashStorageAbstract):
             # Ref: https://stackoverflow.com/questions/1097908/how-do-i-sort-unicode-strings-alphabetically-in-python
             #locale.setlocale(locale.LC_ALL, "")
             hash_data_sorted.sort(key = lambda v : (os.path.normcase(v[0]), v[0])) # Compare in lower case. If equal, then compare original strings
-            for data_file_name, hash in hash_data_sorted:
-                hash_file.write(f"{hash} *{data_file_name}\n")
+            for data_file_name, hash_info in hash_data_sorted:
+                # Check that current hash entry should be stored
+                if self.preserve_unused_hash_records or hash_info[1]:
+                    hash_file.write(f"{hash_info[0]} *{data_file_name}\n")
 
             if not self.suppress_hash_file_comments:
                 hash_file.write("# End of file\n")
@@ -176,6 +183,8 @@ class SingleFileHashesStorage(HashStorageAbstract):
         # Ref: https://docs.python.org/3.2/library/os.path.html#os.path.normcase
         fn = os.path.normcase(os.path.abspath(data_file_name))
         ret = fn in self.hash_data
+        if ret:
+            self.hash_data[fn] = (self.hash_data[fn][0], True)
         return ret
 
     def set_hash(self, data_file_name, hash_value):
@@ -183,4 +192,4 @@ class SingleFileHashesStorage(HashStorageAbstract):
 
         # Ref: https://docs.python.org/3.2/library/os.path.html#os.path.normcase
         fn = os.path.normcase(os.path.abspath(data_file_name))
-        self.hash_data[fn] = hash_value
+        self.hash_data[fn] = (hash_value, True)
