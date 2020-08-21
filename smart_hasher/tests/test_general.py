@@ -83,20 +83,20 @@ class SimpleInputsTestCase(unittest.TestCase):
         work = "E:\\aaa.txt"
         base = "J:\\bbb.txt"
         output = util.rel_file_path(work, base)
-        self.assertEqual(os.path.normcase(os.path.normpath(output)), os.path.normcase(os.path.normpath(work)), False)
+        self.assertEqual(os.path.normpath(output), os.path.normpath(work), False)
 
     def test_rel_file_paths_with_abs(self):
         # Specify `work` as relative
         work = "../rel1/rel2/simple.txt"
         base = "C:/level1/level2/simple.txt.sha1"
         output = util.rel_file_path(work, base, True)
-        self.assertEqual(os.path.normcase(os.path.normpath(output)), os.path.normcase(os.path.normpath("C:/level1/rel1/rel2/simple.txt")))
+        self.assertEqual(os.path.normpath(output), os.path.normpath("C:/level1/rel1/rel2/simple.txt"))
 
         # Specify `work` as absolute, it shouldn't be changed
         work = self.data_path + "/aaa/bbb/simple.txt"
         base = self.data_path + "/ccc/simple.txt.sha1"
         output = util.rel_file_path(work, base, True)
-        self.assertEqual(os.path.normcase(os.path.normpath(output)), os.path.normcase(os.path.normpath(work)), True)
+        self.assertEqual(os.path.normpath(output), os.path.normpath(work), True)
 
     def test_calc_hash_for_empty_file(self):
         file_name = f'{self.data_path}/empty.txt'

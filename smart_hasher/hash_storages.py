@@ -11,11 +11,12 @@ class HashStorageAbstract(abc.ABC):
         self.use_absolute_file_names = False
         self.hash_file_header_comments = None # The default is None to throw exception if not assigned so to catch error early
         self.suppress_hash_file_comments = False
+        self.norm_case_file_names = False
 
     def _check_data_hash_files_names_equal(self, data_file_name, hash_file_name):
         # Ref: https://docs.python.org/3/library/os.path.html#os.path.realpath
-        if os.path.realpath(data_file_name) == os.path.realpath(hash_file_name):
-            raise util.AppUsageError(f"Data and hash file names are the same: '{data_file_name}'. Data and hash file names should specify different files")
+        if os.path.normcase(os.path.realpath(data_file_name)) == os.path.normcase(os.path.realpath(hash_file_name)):
+            raise util.AppUsageError(f"Data and hash file names are the same: '{data_file_name}'. Data and hash file names should specify different files to avoid data loss of data file")
 
     @abc.abstractmethod
     def load_hashes_info(self): pass
@@ -82,6 +83,9 @@ class HashPerFileStorage(HashStorageAbstract):
             else:
                 data_file_name_user = util.rel_file_path(data_file_name, hash_file_name, False)
 
+            if self.norm_case_file_names:
+                data_file_name_user = os.path.normcase(data_file_name_user)
+
             hash_file.write(hash_value + " *" + data_file_name_user + "\n")
 
 class SingleFileHashesStorage(HashStorageAbstract):
@@ -132,7 +136,8 @@ class SingleFileHashesStorage(HashStorageAbstract):
 
                 #data_file_name =  os.path.abspath(data_file_name)
                 data_file_name = util.rel_file_path(data_file_name, hash_file_name, True)
-                data_file_name = os.path.normcase(data_file_name)
+                if self.norm_case_file_names:
+                    data_file_name = os.path.normcase(data_file_name)
 
                 if self.hash_data.get(data_file_name) is not None:
                     raise util.AppUsageError(self.__input_hash_file_error_message("Input hash file contains duplicated entry for file '{data_file_name}'", hash_file_name, lineIndex, line))
@@ -164,7 +169,7 @@ class SingleFileHashesStorage(HashStorageAbstract):
 
             # Ref: https://stackoverflow.com/questions/1097908/how-do-i-sort-unicode-strings-alphabetically-in-python
             #locale.setlocale(locale.LC_ALL, "")
-            hash_data_sorted.sort(key = lambda v : (os.path.normcase(v[0]), v[0])) # Compare in lower case. If equal, then compare original strings
+            hash_data_sorted.sort(key = lambda v : (os.path.normcase(v[0]), v[0])) # Compare in norm case. If equal, then compare original strings
             for data_file_name, hash_info in hash_data_sorted:
                 # Check that current hash entry should be stored
                 if self.preserve_unused_hash_records or hash_info[1]:
@@ -180,8 +185,10 @@ class SingleFileHashesStorage(HashStorageAbstract):
     def has_hash(self, data_file_name):
         self._check_data_hash_files_names_equal(data_file_name, self.get_hash_file_name(None))
 
+        fn = os.path.abspath(data_file_name)
         # Ref: https://docs.python.org/3.2/library/os.path.html#os.path.normcase
-        fn = os.path.normcase(os.path.abspath(data_file_name))
+        if self.norm_case_file_names:
+            fn = os.path.normcase(fn)
         ret = fn in self.hash_data
         if ret:
             self.hash_data[fn] = (self.hash_data[fn][0], True)
@@ -190,6 +197,8 @@ class SingleFileHashesStorage(HashStorageAbstract):
     def set_hash(self, data_file_name, hash_value):
         self._check_data_hash_files_names_equal(data_file_name, self.get_hash_file_name(None))
 
+        fn = os.path.abspath(data_file_name)
         # Ref: https://docs.python.org/3.2/library/os.path.html#os.path.normcase
-        fn = os.path.normcase(os.path.abspath(data_file_name))
+        if self.norm_case_file_names:
+            fn = os.path.normcase(fn)
         self.hash_data[fn] = (hash_value, True)

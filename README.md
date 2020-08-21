@@ -2,7 +2,7 @@
 
 ## Rationale
 
-This app is to calculate hashes of files with many advanced features.
+This app is to calculate hashes of files with many convenient features.
 
 One of cases e.g. if it is needed to check integrity of the large files with the slow connection. In such case network interruption may happened, slow speed and/or hang up.
 When calculating a hash the progress is shown so you can get an idea about network speed.
@@ -23,8 +23,9 @@ Please check [USAGE.md](USAGE.md) file
 ## Some features supported
 
 * Show speed for overall file and current speed. This is especially useful on non-robust connection.
-* Retry on error.
+* Retry on data read error.
 * Skip files for which hashes already calculated. This is convenient when process is interrupted and resumed later.
-* Multiple files.
+* Multiple files on inputs, either by file names or folders with file masks allowed.
 * Many popular hash algorithms.
 * Save hashes for many input files in one output file or for one output file per input file.
+* Output is sorted by file names. This is convenient to compare files with hashes, and operation system file order does not influence on such comparison.

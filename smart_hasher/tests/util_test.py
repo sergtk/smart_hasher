@@ -1,10 +1,14 @@
 import os
+import pathlib
 
 def get_data_path():
     return os.path.join(os.getcwd(), "tests", "data")
 
 def get_work_path():
-    return os.path.join(os.getcwd(), "tests", "tmp")
+    # Ref: https://stackoverflow.com/questions/273192/how-can-i-safely-create-a-nested-directory
+    ret = os.path.join(os.getcwd(), "tests", "tmp")
+    pathlib.Path(ret).mkdir(parents=True, exist_ok=True)
+    return ret
 
 def clean_work_dir():
     # Ref: https://stackoverflow.com/questions/185936/how-to-delete-the-contents-of-a-folder

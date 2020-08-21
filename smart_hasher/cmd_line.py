@@ -80,6 +80,9 @@ def parse_cmd_line():
         parser.add_argument('--preserve-unused-hash-records', action="store_true",
                             help="This key works with --single-hash-file-name-base. By default if file with hashes already exists then records for files which not handled deleted to avoid. "
                             "If this key specified, then they preserved")
+        parser.add_argument('--norm-case-file-names', action="store_true",
+                            help="Use normalized case of file names on output. This is more robust, but file names may differ which may look inconvenient. "
+                            "Refer fo details to https://docs.python.org/3/library/os.path.html#os.path.normcase")
 
         # Ref: https://stackoverflow.com/questions/23032514/argparse-disable-same-argument-occurrences
         cmd_line_args = parser.parse_args()
