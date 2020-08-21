@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>8f5cbe6d-1ea6-4473-80bd-6a5afec4f524</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>tests\test_hash_storages.py</StartupFile>
+    <StartupFile>tests\test_general.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>

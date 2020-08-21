@@ -98,13 +98,38 @@ class SimpleInputsTestCase(unittest.TestCase):
         output = util.rel_file_path(work, base, True)
         self.assertEqual(os.path.normcase(os.path.normpath(output)), os.path.normcase(os.path.normpath(work)), True)
 
+    def test_calc_hash_for_empty_file(self):
+        file_name = f'{self.data_path}/empty.txt'
+
+        calc = hash_calc.FileHashCalc()
+        calc.file_name = file_name
+        calc.suppress_console_reporting_output = True
+
+        with open(f'{self.data_path}/empty.txt.sha1', mode='r') as sha1_expected_file:
+            sha1_expected = sha1_expected_file.read()
+
+        calc.hash_str = "sha1"
+        calc_res = calc.run()
+        self.assertEqual(calc_res, hash_calc.FileHashCalc.ReturnCode.OK)
+        sha1_actual = calc.result
+        self.assertEqual(sha1_expected, sha1_actual)
+
+        with open(f'{self.data_path}/empty.txt.md5', mode='r') as md5_expected_file:
+            md5_expected = md5_expected_file.read()
+
+        calc.hash_str = "md5"
+        calc_res = calc.run()
+        self.assertEqual(calc_res, hash_calc.FileHashCalc.ReturnCode.OK)
+        md5_actual = calc.result
+        self.assertEqual(md5_expected, md5_actual)
+
 if __name__ == '__main__':
     run_single_test = True
     if run_single_test:
         # Run single test
         # https://docs.python.org/3/library/unittest.html#organizing-test-code
         suite = unittest.TestSuite()
-        suite.addTest(SimpleInputsTestCase('test_rel_file_paths_with_rel'))
+        suite.addTest(SimpleInputsTestCase('test_calc_hash_for_empty_file'))
         #suite.run()
         runner = unittest.TextTestRunner()
         runner.run(suite)

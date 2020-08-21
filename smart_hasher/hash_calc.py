@@ -69,7 +69,10 @@ class FileHashCalc(object):
                 recent_size += len(data)
 
                 # Calculate progress.
-                percent = int(10000 * cur_size / total_size)
+                if total_size > 0:
+                    percent = int(10000 * cur_size / total_size)
+                else:
+                    percent = 0
 
                 #if percent > 1000:
                 #    raise OSError(10, "Dummy error", "dummfilename.txt")
