@@ -8,6 +8,7 @@ import asyncio
 import tracemalloc
 import filecmp
 import tests.util_test
+import cmd_line
 
 class SimpleCommandLineTestCase(unittest.TestCase):
     """This class contains testing simple functionality from command line"""
@@ -95,7 +96,7 @@ class SimpleCommandLineTestCase(unittest.TestCase):
 
     def test_specify_non_existent_file(self):
         exit_code = os.system(f'smart_hasher --input-file {self.work_path}/nofile.txt --suppress-console-reporting-output --retry-pause-on-data-read-error 0')
-        self.assertEqual(smart_hasher.ExitCode(exit_code), smart_hasher.ExitCode.DATA_READ_ERROR)
+        self.assertEqual(cmd_line.ExitCode(exit_code), cmd_line.ExitCode.DATA_READ_ERROR)
 
     def test_simple_force_calc_hash(self):
         data_file_name = f"{self.work_path}/file1.txt"
@@ -170,7 +171,7 @@ class SimpleCommandLineTestCase(unittest.TestCase):
         shutil.copyfile(data_file_name, work_file_name)
 
         exit_code = os.system(f'smart_hasher --input-file {work_file_name} --suppress-console-reporting-output --suppress-hash-file-name-postfix')
-        self.assertEqual(exit_code, smart_hasher.ExitCode.APP_USAGE_ERROR)
+        self.assertEqual(exit_code, cmd_line.ExitCode.APP_USAGE_ERROR)
 
         # Ref: https://docs.python.org/3.7/library/filecmp.html
         self.assertTrue(filecmp.cmp(data_file_name, work_file_name, shallow=False), f"Input data file is corrupted! ({work_file_name})")

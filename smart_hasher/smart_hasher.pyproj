@@ -13,7 +13,7 @@
     <RootNamespace>smart_hasher</RootNamespace>
     <IsWindowsApplication>False</IsWindowsApplication>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>--input-file J:\tmp.mp4 --suppress-console-reporting-output --suppress-hash-file-name-postfix</CommandLineArguments>
+    <CommandLineArguments>--input-file J:\tmp.mp4</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <InterpreterId>MSBuild|Python 3.7 (32-bit)|$(MSBuildProjectFullPath)</InterpreterId>
     <TestFramework>unittest</TestFramework>
@@ -29,6 +29,9 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="cmd_line.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="hash_calc.py">
       <SubType>Code</SubType>
     </Compile>
