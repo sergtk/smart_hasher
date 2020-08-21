@@ -14,6 +14,7 @@
                            [--single-hash-file-name-base SINGLE_HASH_FILE_NAME_BASE]
                            [--suppress-hash-file-name-postfix]
                            [--preserve-unused-hash-records]
+                           [--norm-case-file-names]
 
     This application is to calculate hashes of files with extended features: support of show progress,
     folders and file masks for multiple files, skip calculation of handled files etc...
@@ -85,7 +86,13 @@
                             Suppress adding postfix in the hash file name for hash
                             algo name
       --preserve-unused-hash-records
-                            This key works with --single-hash-file-name-base.
-                            By default if file with hashes already exists then
+                            This key works with --single-hash-file-name-base. By
+                            default if file with hashes already exists then
                             records for files which not handled deleted to avoid.
                             If this key specified, then they preserved
+      --norm-case-file-names
+                            Use normalized case of file names on output. This is
+                            more robust, but file names may differ which may look
+                            inconvenient. It is also platform dependent. Refer for
+                            details to https://docs.python.org/3/library/os.path.h
+                            tml#os.path.normcase
