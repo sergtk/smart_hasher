@@ -206,7 +206,7 @@ if __name__ == '__main__':
         # Run single test
         # https://docs.python.org/3/library/unittest.html#organizing-test-code
         suite = unittest.TestSuite()
-        suite.addTest(SimpleCommandLineTestCase('test_error_report_on_equal_data_and_hash_file_names'))
+        suite.addTest(SimpleCommandLineTestCase('test_specify_non_existent_file'))
         runner = unittest.TextTestRunner()
         runner.run(suite)
     else:
