@@ -11,26 +11,32 @@
                            [--force-calc-hash] [--add-output-file-name-timestamp]
                            [--suppress-output-file-comments]
                            [--use-absolute-file-names]
+                           [--single-hash-file-name-base SINGLE_HASH_FILE_NAME_BASE]
+                           [--suppress-hash-file-name-postfix]
+                           [--preserve-unused-hash-records]
 
     This application is to calculate hashes of files with extended features: support of show progress,
     folders and file masks for multiple files, skip calculation of handled files etc...
 
     Application exit codes:
      0 - OK: everthing fine. Program executed successfully
-     2 - OK_SKIPPED_ALREADY_CALCULATED: everything fine. OK may be returned anyway if file(s) is skipped because the hash is already calculated.
+     2 - OK_SKIPPED_ALREADY_CALCULATED: everything fine. OK may be returned anyway
+         if file(s) is skipped because the hash is already calculated.
      7 - FAILED: general failure, more specific information is not available.
      8 - PROGRAM_INTERRUPTED_BY_USER
      9 - DATA_READ_ERROR: there was error(s) when reading some file(s). Probably hash is not calculated for all files
     10 - EXCEPTION_THROWN_ON_PROGRAM_EXECUTION
     11 - INVALID_COMMAND_LINE_PARAMETERS
+    12 - APP_USAGE_ERROR: incorrect usage of the application
 
     optional arguments:
       -h, --help            show this help message and exit
       --input-file INPUT_FILE, -if INPUT_FILE
-                            Specify one or more input files
+                            Specify input files. Key can be specified multiple
+                            times
       --input-folder INPUT_FOLDER, -ifo INPUT_FOLDER
-                            Specify one or more input folders. All files in folder
-                            are handled recursively
+                            Specify input folders. All files in folder are handled
+                            recursively. Key can be specified multiple times
       --input-folder-file-mask-include INPUT_FOLDER_FILE_MASK_INCLUDE, -ifoi INPUT_FOLDER_FILE_MASK_INCLUDE
                             Specify file mask to include for input folder. All
                             files in the folder considered if not specified.
@@ -71,3 +77,15 @@
       --use-absolute-file-names
                             Use absolute file names in output. If argument is not
                             specified, relative file names used
+      --single-hash-file-name-base SINGLE_HASH_FILE_NAME_BASE
+                            If specified then all hashes are stored in one file
+                            specified as a value for this argument. Final file
+                            name include postfix
+      --suppress-hash-file-name-postfix
+                            Suppress adding postfix in the hash file name for hash
+                            algo name
+      --preserve-unused-hash-records
+                            This key works with --single-hash-file-name-base.
+                            By default if file with hashes already exists then
+                            records for files which not handled deleted to avoid.
+                            If this key specified, then they preserved

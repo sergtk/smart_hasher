@@ -78,7 +78,7 @@ def parse_cmd_line():
         parser.add_argument('--single-hash-file-name-base', help="If specified then all hashes are stored in one file specified as a value for this argument. Final file name include postfix", action="append")
         parser.add_argument('--suppress-hash-file-name-postfix', help="Suppress adding postfix in the hash file name for hash algo name", action="store_true")
         parser.add_argument('--preserve-unused-hash-records', action="store_true",
-                            help="This key is works with --single-hash-file-name-base. By default if file with hashes already exists then records for files which not handled deleted to avoid. "
+                            help="This key works with --single-hash-file-name-base. By default if file with hashes already exists then records for files which not handled deleted to avoid. "
                             "If this key specified, then they preserved")
 
         # Ref: https://stackoverflow.com/questions/23032514/argparse-disable-same-argument-occurrences
