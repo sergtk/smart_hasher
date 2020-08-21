@@ -6,6 +6,8 @@ import tests.util_test
 import hash_storages
 import filecmp
 import cmd_line
+import pprint
+import locale
 
 class SingleFileHashesStorageTestCase(unittest.TestCase):
 
@@ -147,28 +149,16 @@ class SingleFileHashesStorageTestCase(unittest.TestCase):
         self.assertTrue(filecmp.cmp(work_hash_storage_file, data_hash_storage_file_24, shallow=False), f"Incorrect output hash file (file '{work_hash_storage_file}')")
 
     def test_sort_non_ascii_file_names(self):
+        work_hash_file = f"{self.work_path}/hash_storage.sha1"
+        data_hash_file = f"{self.data_path}/cyrillic_files/hash_storage.sha1"
+
         for fn in ["а кириллическое.txt", "В прописное.txt", "в строчное.txt", "имя_без_пробелов.txt", "українська мова.txt", "Л_вначале.txt"]:
             shutil.copyfile(os.path.join(self.data_path, "cyrillic_files", fn), os.path.join(self.work_path, fn))
 
-        os.system(f"smart_hasher --input-folder {self.work_path} --suppress-console-reporting-output --suppress-output-file-comments --single-hash-file-name-base {self.work_path}/hash_storage")
-        # os.system(f"smart_hasher --input-folder {self.work_path} --suppress-console-reporting-output --suppress-output-file-comments")
-        
-        return
-
-        for i in range(1, 4):
-            with open(f'{self.data_path}/file{i}.txt.sha1', mode='r') as sha1_expected_file:
-                sha1_expected = sha1_expected_file.read()
-
-            with open(f'{self.work_path}/file{i}.txt.sha1', mode='r') as sha1_actual_file:
-                sha1_actual = sha1_actual_file.read()
-            sha1_actual = sha1_actual[:40]
-            with self.subTest(i = i):
-                self.assertEqual(sha1_expected, sha1_actual, f'Wrong sha1-hash for file "file{i}.txt". Expected: "{sha1_expected}", actual: "{sha1_actual}"')
-
-            with self.subTest(i = i):
-                # Ref: https://docs.python.org/3.7/library/filecmp.html
-                self.assertTrue(filecmp.cmp(f'{self.data_path}/file{i}.txt', f'{self.work_path}/file{i}.txt', shallow=False), f"Input data file is corrupted! ({'self.work_path}/file{i}.txt'})")
-
+        exit_code = os.system(f"smart_hasher --input-folder {self.work_path} --single-hash-file-name-base {work_hash_file} --suppress-hash-file-name-postfix "
+                              f"--suppress-console-reporting-output --suppress-output-file-comments")
+        self.assertEqual(exit_code, cmd_line.ExitCode.OK)
+        self.assertTrue(filecmp.cmp(work_hash_file, data_hash_file, shallow=False), f"Incorrect output hash file (file '{work_hash_file}')")
 
 if __name__ == '__main__':
     run_single_test = True

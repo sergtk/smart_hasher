@@ -103,6 +103,6 @@ def parse_cmd_line():
         # Check if error is related to invalid command line parameters
         # Ref: https://docs.python.org/3/library/argparse.html#argparse.ArgumentParser.error
         if se.code == 2:
-            return (cmd_line_args, ExitCode.INVALID_COMMAND_LINE_PARAMETERS)
+            return (None, ExitCode.INVALID_COMMAND_LINE_PARAMETERS)
         raise se
     return (cmd_line_args, ExitCode.OK)

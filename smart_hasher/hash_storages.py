@@ -168,8 +168,9 @@ class SingleFileHashesStorage(HashStorageAbstract):
                 hash_data_sorted.append((data_file_name_user, hash))
 
             # Ref: https://stackoverflow.com/questions/1097908/how-do-i-sort-unicode-strings-alphabetically-in-python
-            #locale.setlocale(locale.LC_ALL, "")
-            hash_data_sorted.sort(key = lambda v : (os.path.normcase(v[0]), v[0])) # Compare in norm case. If equal, then compare original strings
+            # Ref: https://stackoverflow.com/a/50437802/13441
+            # Ref: https://stackoverflow.com/a/1318709/13441
+            hash_data_sorted.sort(key=lambda v: (locale.strxfrm(v[0]).casefold(), locale.strxfrm(v[0])))
             for data_file_name, hash_info in hash_data_sorted:
                 # Check that current hash entry should be stored
                 if self.preserve_unused_hash_records or hash_info[1]:
