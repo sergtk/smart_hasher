@@ -14,7 +14,7 @@
                            [--single-hash-file-name-base SINGLE_HASH_FILE_NAME_BASE]
                            [--suppress-hash-file-name-postfix]
                            [--preserve-unused-hash-records]
-                           [--norm-case-file-names]
+                           [--norm-case-file-names] [--sort-by-hash-value]
 
     This application is to calculate hashes of files with extended features: support of show progress,
     folders and file masks for multiple files, skip calculation of handled files etc...
@@ -96,3 +96,7 @@
                             inconvenient. It is also platform dependent. Refer for
                             details to https://docs.python.org/3/library/os.path.h
                             tml#os.path.normcase
+      --sort-by-hash-value  Specify to store hash records sorted by hash values in
+                            case when multiple hashes are stored in one file. By
+                            default without this option hash records are sorted by
+                            file name
