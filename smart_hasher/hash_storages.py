@@ -96,6 +96,7 @@ class SingleFileHashesStorage(HashStorageAbstract):
         self.single_hash_file_name_base = None
         self.hash_data = dict()
         self.preserve_unused_hash_records = False
+        self.sort_by_hash_value = False
 
     def __input_hash_file_error_message(self, error_message, hash_file_name, lineIndex, line):
         return f"{error_message}.\n    File {hash_file_name}, Line {lineIndex}: {line[0:200]}"
@@ -167,10 +168,17 @@ class SingleFileHashesStorage(HashStorageAbstract):
                     data_file_name_user = util.rel_file_path(data_file_name, hash_file_name, False)
                 hash_data_sorted.append((data_file_name_user, hash))
 
-            # Ref: https://stackoverflow.com/questions/1097908/how-do-i-sort-unicode-strings-alphabetically-in-python
-            # Ref: https://stackoverflow.com/a/50437802/13441
-            # Ref: https://stackoverflow.com/a/1318709/13441
-            hash_data_sorted.sort(key=lambda v: (locale.strxfrm(v[0]).casefold(), locale.strxfrm(v[0])))
+            if self.sort_by_hash_value:
+                # Sort by hash. If hashes equal, sort by file name
+                key1 = lambda v: (v[1][0].lower(), locale.strxfrm(v[0]).casefold(), locale.strxfrm(v[0]))
+            else:
+                # Ref: https://stackoverflow.com/questions/1097908/how-do-i-sort-unicode-strings-alphabetically-in-python
+                # Ref: https://stackoverflow.com/a/50437802/13441
+                # Ref: https://stackoverflow.com/a/1318709/13441
+                key1 = lambda v: (locale.strxfrm(v[0]).casefold(), locale.strxfrm(v[0]))
+                
+            hash_data_sorted.sort(key=key1)
+
             for data_file_name, hash_info in hash_data_sorted:
                 # Check that current hash entry should be stored
                 if self.preserve_unused_hash_records or hash_info[1]:

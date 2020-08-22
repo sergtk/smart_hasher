@@ -199,6 +199,7 @@ try:
             hash_storage = hash_storages.SingleFileHashesStorage()
             hash_storage.single_hash_file_name_base = cmd_line_args.single_hash_file_name_base[0]
             hash_storage.preserve_unused_hash_records = cmd_line_args.preserve_unused_hash_records
+            hash_storage.sort_by_hash_value = cmd_line_args.sort_by_hash_value
         else:
             hash_storage = hash_storages.HashPerFileStorage()
 

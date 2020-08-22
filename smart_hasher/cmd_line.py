@@ -83,6 +83,8 @@ def parse_cmd_line():
         parser.add_argument('--norm-case-file-names', action="store_true",
                             help="Use normalized case of file names on output. This is more robust, but file names may differ which may look inconvenient. It is also platform dependent. "
                             "Refer for details to https://docs.python.org/3/library/os.path.html#os.path.normcase")
+        parser.add_argument('--sort-by-hash-value', action="store_true",
+                            help="Specify to store hash records sorted by hash values in case when multiple hashes are stored in one file. By default without this option hash records are sorted by file name")
 
         # Ref: https://stackoverflow.com/questions/23032514/argparse-disable-same-argument-occurrences
         cmd_line_args = parser.parse_args()

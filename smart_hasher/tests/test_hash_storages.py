@@ -24,22 +24,29 @@ class SingleFileHashesStorageTestCase(unittest.TestCase):
         tests.util_test.clean_work_dir()
 
     def test_hash_storages_load_save(self):
-        hash_storage_file = "dummy_hash_storage_2_general_rel.sha1"
-        tests.util_test.clean_work_dir()
 
-        work_hash_storage_file = os.path.join(self.work_path, hash_storage_file)
-        data_hash_storage_file = os.path.join(self.data_path, "hash_storages", hash_storage_file)
-        shutil.copyfile(data_hash_storage_file, work_hash_storage_file)
+        for sort_by_hash_value in [False, True]:
+            hash_storage_file = "dummy_hash_storage_2_general_rel.sha1"
+            tests.util_test.clean_work_dir()
 
-        hash_storage = hash_storages.SingleFileHashesStorage()
-        hash_storage.single_hash_file_name_base = work_hash_storage_file
-        hash_storage.suppress_hash_file_comments = True
-        hash_storage.preserve_unused_hash_records = True
+            work_hash_storage_file = os.path.join(self.work_path, hash_storage_file)
+            data_hash_storage_file = os.path.join(self.data_path, "hash_storages", hash_storage_file)
+            shutil.copyfile(data_hash_storage_file, work_hash_storage_file)
 
-        hash_storage.load_hashes_info()
-        hash_storage.save_hashes_info()
+            hash_storage = hash_storages.SingleFileHashesStorage()
+            hash_storage.single_hash_file_name_base = work_hash_storage_file
+            hash_storage.suppress_hash_file_comments = True
+            hash_storage.preserve_unused_hash_records = True
+            hash_storage.sort_by_hash_value = sort_by_hash_value
 
-        self.assertTrue(filecmp.cmp(work_hash_storage_file, data_hash_storage_file + ".save", shallow=False), f"Wrong data on output '{data_hash_storage_file}'")
+            hash_storage.load_hashes_info()
+            hash_storage.save_hashes_info()
+
+            data_hash_storage_file_expected = data_hash_storage_file + ".save"
+            if sort_by_hash_value:
+                data_hash_storage_file_expected += ".hash_sorted"
+
+            self.assertTrue(filecmp.cmp(work_hash_storage_file, data_hash_storage_file_expected, shallow=False), f"Wrong output in '{work_hash_storage_file}'")
 
     def test_cli_simple_hash_storages_rel(self):
         for hash_storage_file in ["dummy_hash_storage_2_general_rel.sha1", "dummy_hash_storage_5_non-ascii.sha1"]:
@@ -166,8 +173,7 @@ if __name__ == '__main__':
         # Run single test
         # https://docs.python.org/3/library/unittest.html#organizing-test-code
         suite = unittest.TestSuite()
-        suite.addTest(SingleFileHashesStorageTestCase("test_sort_non_ascii_file_names"))
-        #suite.addTest(SingleFileHashesStorageTestCase("test_cli_simple_hash_storages_rel"))
+        suite.addTest(SingleFileHashesStorageTestCase("test_hash_storages_load_save"))
         runner = unittest.TextTestRunner()
         runner.run(suite)
     else:
