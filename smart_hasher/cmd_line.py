@@ -6,12 +6,14 @@ import smart_hasher
 import hash_calc
 
 
-# Code with values less than 7 are considered like OK, and program can continue execution
-# Ref: https://docs.python.org/3.7/library/enum.html
-# Ref: https://stackoverflow.com/questions/6060635/convert-enum-to-int-in-python
 @enum.unique
 @functools.total_ordering
 class ExitCode(enum.IntEnum):
+    """
+    Code with values less than 7 are considered like OK, and program can continue execution
+    Ref: https://docs.python.org/3.7/library/enum.html
+    Ref: https://stackoverflow.com/questions/6060635/convert-enum-to-int-in-python
+    """
     OK = 0
     OK_SKIPPED_ALREADY_CALCULATED = 2
     FAILED = 7

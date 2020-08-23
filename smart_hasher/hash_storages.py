@@ -6,6 +6,9 @@ import locale
 import json
 
 class HashStorageAbstract(abc.ABC):
+    """
+    This is a base class for storages of hash information
+    """
 
     def __init__(self):
         self.hash_file_name_postfix = ""
@@ -15,39 +18,67 @@ class HashStorageAbstract(abc.ABC):
         self.norm_case_file_names = False
 
     def _check_data_hash_files_names_equal(self, data_file_name, hash_file_name):
-        # Ref: https://docs.python.org/3/library/os.path.html#os.path.realpath
+        """
+        Ref: https://docs.python.org/3/library/os.path.html#os.path.realpath
+        """
         if os.path.normcase(os.path.realpath(data_file_name)) == os.path.normcase(os.path.realpath(hash_file_name)):
             raise util.AppUsageError(f"Data and hash file names are the same: '{data_file_name}'. Data and hash file names should specify different files to avoid data loss of data file")
+        
+    @abc.abstractmethod
+    def load_hashes_info(self):
+        """
+        Load hashes from file or other sources if there are already calculated ones which corresponce to the parameters of the class
+        """
+        pass
 
     @abc.abstractmethod
-    def load_hashes_info(self): pass
+    def save_hashes_info(self):
+        """
+        Save calculated hashes info to file(s) or other destination with a given format etc...
+        """
+        pass
 
     @abc.abstractmethod
-    def save_hashes_info(self): pass
-
-    # This function is just for reporting.
-    # To check if the data file has hash the function call `has_hash` should be made
+    def get_hash_file_name(self, data_file_name):
+        """
+        This function is just for reporting.
+        To check if the data file has hash the function call `has_hash` should be made
+        """
+        pass
+    
     @abc.abstractmethod
-    def get_hash_file_name(self, data_file_name): pass
+    def has_hash(self, data_file_name):
+        """
+        Check if the hash for file data_file_name is already calculated
+        """
+        pass
 
     @abc.abstractmethod
-    def has_hash(self, data_file_name): pass
+    def set_hash(self, data_file_name, hash_value):
+        """
+        Force re-hash should be accounted
+        """
+        pass
 
-    @abc.abstractmethod
-    def set_hash(self, data_file_name, hash_value): pass # force re-hash should be checked
-
-    # Ref: https://www.geeksforgeeks.org/with-statement-in-python/ - it looks fine for __enter__, but not for __exit__
     def __enter__ (self):
+        """
+        Ref: https://www.geeksforgeeks.org/with-statement-in-python/ - it looks fine for __enter__, but not for __exit__
+        """
         self.load_hashes_info()
         return self
 
-    # Ref: https://stackoverflow.com/questions/22417323/how-do-enter-and-exit-work-in-python-decorator-classes
-    # Ref: https://docs.python.org/3/reference/datamodel.html#object.__exit__
     def __exit__ (self, exc_type, exc_value, traceback):
+        """
+        Ref: https://stackoverflow.com/questions/22417323/how-do-enter-and-exit-work-in-python-decorator-classes
+        Ref: https://docs.python.org/3/reference/datamodel.html#object.__exit__
+        """
         self.save_hashes_info()
         return False
 
 class HashPerFileStorage(HashStorageAbstract):
+    """
+    This is a hash storage to save hash information one hash file for one data  file
+    """
 
     def load_hashes_info(self):
         pass
@@ -91,6 +122,11 @@ class HashPerFileStorage(HashStorageAbstract):
             hash_file.write(hash_value + " *" + data_file_name_user + "\n")
 
 class SingleFileHashesStorage(HashStorageAbstract):
+    """
+    This is a hash information storage to save hash information in one hash file for many data files
+
+    This storage supports traditional hash files and json-storages.
+    """
 
     def __init__(self):
         super().__init__()
@@ -112,10 +148,11 @@ class SingleFileHashesStorage(HashStorageAbstract):
         # True should be later specfieid to save info
         self.hash_data[data_file_name] = (hash, False)
     
-    # Ref: https://docs.python.org/3.7/library/collections.html#collections.OrderedDict
-    # Ref: https://docs.python.org/3/library/re.html
     def __load_hashes_info_from_text(self, hash_file_name):
-
+        """
+        Ref: https://docs.python.org/3.7/library/collections.html#collections.OrderedDict
+        Ref: https://docs.python.org/3/library/re.html
+        """
         comment_pattern = re.compile("\s*(#.*)?\n?")
         # Ref: https://stackoverflow.com/questions/50618116/regex-for-finding-file-paths
         # Ref: https://stackoverflow.com/questions/2758921/regular-expression-that-finds-and-replaces-non-ascii-characters-with-python
@@ -148,8 +185,10 @@ class SingleFileHashesStorage(HashStorageAbstract):
                 lineIndex += 1
 
     def __load_hashes_info_from_json(self, hash_file_name):
-        # Ref: https://stackabuse.com/reading-and-writing-json-to-a-file-in-python/
-        # Ref: https://docs.python.org/2/library/json.html
+        """
+        Ref: https://stackabuse.com/reading-and-writing-json-to-a-file-in-python/
+        Ref: https://docs.python.org/2/library/json.html
+        """
         with open(hash_file_name, "r", encoding="utf-8") as f:
             json_data = json.load(f)
         for hash_record in json_data["data"]:

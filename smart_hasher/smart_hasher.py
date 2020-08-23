@@ -35,6 +35,9 @@ def get_date_time_str(dateTime: datetime) -> str:
     return dateTime.strftime("%Y.%m.%d %H:%M:%S")
 
 def handle_input_file(hash_storage: hash_storages.HashStorageAbstract, input_file_name):
+    """
+    Handle single input file input_file_name
+    """
     if not isinstance(hash_storage, hash_storages.HashStorageAbstract):
         raise TypeError(f"HashStorageAbstract expected, {type(hash_storage)} found")
 
@@ -92,7 +95,10 @@ def handle_input_file(hash_storage: hash_storages.HashStorageAbstract, input_fil
     return cmd_line.ExitCode.OK
 
 def file_masks_included(file_name):
-    # Ref: "Extract file name from path, no matter what the os/path format" https://stackoverflow.com/a/8384788/13441
+    """
+    Ref: "Extract file name from path, no matter what the os/path format" https://stackoverflow.com/a/8384788/13441
+    """
+
     base_name = ntpath.basename(file_name)
 
     # Ref: https://docs.python.org/2/library/fnmatch.html
@@ -116,6 +122,10 @@ def file_masks_included(file_name):
     return True;
 
 def handle_input_files(hash_storage: hash_storages.HashStorageAbstract):
+    """
+    Handle input files according to the parameters from user
+    """
+
     if not isinstance(hash_storage, hash_storages.HashStorageAbstract):
         raise TypeError(f"HashStorageAbstract expected, {type(hash_storage)} found")
 
@@ -168,9 +178,12 @@ def handle_input_files(hash_storage: hash_storages.HashStorageAbstract):
     return cmd_line.ExitCode.OK
 
 def fill_start_time_dict():
+    """
+    Save time in different formats at the start of the program run
+    
+    Ref: https://www.programiz.com/python-programming/datetime/strftime
+    """
     global start_time_dict
-    # time in different formats when program run
-    # Ref: https://www.programiz.com/python-programming/datetime/strftime
     start_time_dict = {"datetime": datetime.now()}
     start_time_dict["file_postfix"] = start_time_dict["datetime"].strftime("%Y-%m-%d_%H-%M-%S")
     

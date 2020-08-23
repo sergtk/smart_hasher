@@ -30,17 +30,23 @@ class FileHashCalc(object):
     # Ref: https://docs.python.org/3.7/library/enum.html
     @enum.unique
     class ReturnCode(enum.IntEnum):
+        """
+        Return codes of run() function
+        """
         OK = 0
         PROGRAM_INTERRUPTED_BY_USER = 8
-        DATA_READ_ERROR = 9
+        DATA_READ_ERROR = 9 # Error when reading data from file. This may be caused by network issues, and retrying does not help
 
     def _print(self, str="", end="\n"):
         if (self.suppress_console_reporting_output):
             return
         print(str, end=end)
 
-    # Ref: https://stackoverflow.com/questions/9181859/getting-percentage-complete-of-an-md5-checksum
-    def run_single(self):
+    def _run_single(self):
+        """
+        Ref: https://stackoverflow.com/questions/9181859/getting-percentage-complete-of-an-md5-checksum
+        """
+        
         if self.file_name is None:
             raise Exception("File name is not specified")
 
@@ -115,10 +121,14 @@ class FileHashCalc(object):
         return self.ReturnCode.OK
 
     def run(self):
+        """
+        This is a main function of the class, which should be called after setup of all parameters
+        """
+
         for cur_try in range(1, self.retry_count_on_data_read_error + 1):
             # Ref: https://stackoverflow.com/questions/2083987/how-to-retry-after-exception
             try:
-                res = self.run_single()
+                res = self._run_single()
                 return res
             except OSError as err:
                 self._print()

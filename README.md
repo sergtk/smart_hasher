@@ -1,8 +1,8 @@
 # smart_hasher
 
-## Rationale
+## About application
 
-This app is to calculate hashes of files with many convenient features.
+This is a command line tool to calculate hashes for one or many files at once with many convenient features.
 
 One of cases e.g. if it is needed to check integrity of the large files with the slow connection. In such case network interruption may happened, slow speed and/or hang up.
 When calculating a hash the progress is shown so you can get an idea about network speed.
