@@ -12,6 +12,7 @@
                            [--suppress-output-file-comments]
                            [--use-absolute-file-names]
                            [--single-hash-file-name-base SINGLE_HASH_FILE_NAME_BASE]
+                           [--single-hash-file-name-base-json SINGLE_HASH_FILE_NAME_BASE_JSON]
                            [--suppress-hash-file-name-postfix]
                            [--preserve-unused-hash-records]
                            [--norm-case-file-names] [--sort-by-hash-value]
@@ -82,6 +83,9 @@
                             If specified then all hashes are stored in one file
                             specified as a value for this argument. Final file
                             name include postfix
+      --single-hash-file-name-base-json SINGLE_HASH_FILE_NAME_BASE_JSON
+                            This is the same key as --single-hash-file-name-base.
+                            But postfix json is added. Result data stored in JSON
       --suppress-hash-file-name-postfix
                             Suppress adding postfix in the hash file name for hash
                             algo name
