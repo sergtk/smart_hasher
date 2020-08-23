@@ -104,18 +104,17 @@ class SingleFileHashesStorage(HashStorageAbstract):
     def __input_hash_file_error_message(self, error_message, hash_file_name, lineIndex, line):
         return f"{error_message}.\n    File {hash_file_name}, Line {lineIndex}: {line[0:200]}"
 
+    def __load_hash_info_entry(self, data_file_name, hash):
+        if self.hash_data.get(data_file_name) is not None:
+            raise util.AppUsageError(self.__input_hash_file_error_message("Input hash file contains duplicated entry for file '{data_file_name}'", hash_file_name, lineIndex, line))
+                
+        # False in tuple specify that element was not accessed. This mean that it should not be saved in output file.
+        # True should be later specfieid to save info
+        self.hash_data[data_file_name] = (hash, False)
+    
     # Ref: https://docs.python.org/3.7/library/collections.html#collections.OrderedDict
     # Ref: https://docs.python.org/3/library/re.html
-    def load_hashes_info(self):
-        if self.single_hash_file_name_base is None:
-            raise Exception("Input file name base is not specified")
-        
-        hash_file_name = self.get_hash_file_name(None)
-        if not os.path.exists(hash_file_name):
-            return
-
-        # Dictionary stores pair "absolute file name" -> "hash"
-        self.hash_data = dict()
+    def __load_hashes_info_from_text(self, hash_file_name):
 
         comment_pattern = re.compile("\s*(#.*)?\n?")
         # Ref: https://stackoverflow.com/questions/50618116/regex-for-finding-file-paths
@@ -143,15 +142,36 @@ class SingleFileHashesStorage(HashStorageAbstract):
                 if self.norm_case_file_names:
                     data_file_name = os.path.normcase(data_file_name)
 
-                if self.hash_data.get(data_file_name) is not None:
-                    raise util.AppUsageError(self.__input_hash_file_error_message("Input hash file contains duplicated entry for file '{data_file_name}'", hash_file_name, lineIndex, line))
-                
-                # False in tuple specify that element was not accessed. This mean that it should not be saved in output file.
-                # True should be later specfieid to save info
-                self.hash_data[data_file_name] = (hash, False)
+                self.__load_hash_info_entry(data_file_name, hash)
 
                 line = f.readline()
                 lineIndex += 1
+
+    def __load_hashes_info_from_json(self, hash_file_name):
+        # Ref: https://stackabuse.com/reading-and-writing-json-to-a-file-in-python/
+        # Ref: https://docs.python.org/2/library/json.html
+        with open(hash_file_name, "r") as f:
+            json_data = json.load(f)
+        for hash_record in json_data["data"]:
+            data_file_name = hash_record["file_name"]
+            hash = hash_record["hash"]
+            self.__load_hash_info_entry(data_file_name, hash)
+
+    def load_hashes_info(self):
+        if self.single_hash_file_name_base is None:
+            raise Exception("Input file name base is not specified")
+        
+        hash_file_name = self.get_hash_file_name(None)
+        if not os.path.exists(hash_file_name):
+            return
+
+        # Dictionary stores pair "absolute file name" -> "(hash, unused status)"
+        self.hash_data = dict()
+
+        if self.json_format:
+            self.__load_hashes_info_from_json(hash_file_name)
+        else:
+            self.__load_hashes_info_from_text(hash_file_name)
 
     def save_hashes_info(self):
         hash_file_name = self.get_hash_file_name(None)
