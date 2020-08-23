@@ -8,12 +8,11 @@ SET PD="C:\Program Files (x86)\Microsoft Visual Studio\Shared\Python37_86\Tools\
 %PD% -w hash_calc
 %PD% -w hash_storages
 %PD% -w util
-
 %PD% -w tests.test_command_line
 %PD% -w tests.test_general
 %PD% -w tests.test_hash_storages
 %PD% -w tests.util_test
 
-move *.html ..\..\doc
+move *.html ..\..\sergtk.github.io\smart_hasher
 
 :: cd ..\..\doc

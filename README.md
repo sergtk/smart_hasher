@@ -29,3 +29,7 @@ Please check [USAGE.md](USAGE.md) file
 * Many popular hash algorithms.
 * Save hashes for many input files in one output file or for one output file per input file.
 * Output is sorted by file names. This is convenient to compare files with hashes, and operation system file order does not influence on such comparison.
+
+## Developer doc
+
+Developer doc (extract by [pydoc](https://docs.python.org/3/library/pydoc.html) from source code) is available at <https://sergtk.github.io/smart_hasher/smart_hasher.html>
