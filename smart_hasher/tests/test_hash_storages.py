@@ -24,7 +24,6 @@ class SingleFileHashesStorageTestCase(unittest.TestCase):
         tests.util_test.clean_work_dir()
 
     def test_hash_storages_load_save(self):
-
         for sort_by_hash_value in [False, True]:
             hash_storage_file = "dummy_hash_storage_2_general_rel.sha1"
             tests.util_test.clean_work_dir()
@@ -167,13 +166,44 @@ class SingleFileHashesStorageTestCase(unittest.TestCase):
         self.assertEqual(exit_code, cmd_line.ExitCode.OK)
         self.assertTrue(filecmp.cmp(work_hash_file, data_hash_file, shallow=False), f"Incorrect output hash file (file '{work_hash_file}')")
 
+    def test_json_hash_storages_load_save(self):
+        for sub_folder, hash_storage_file in [("hash_storages", "dummy_hash_storage_2_general_rel.sha1"), ("cyrillic_files", "hash_storage.sha1")]:
+            tests.util_test.clean_work_dir()
+
+            work_hash_storage_file = os.path.join(self.work_path, hash_storage_file)
+            data_hash_storage_file = os.path.join(self.data_path, sub_folder, hash_storage_file)
+            shutil.copyfile(data_hash_storage_file, work_hash_storage_file)
+
+            hash_storage = hash_storages.SingleFileHashesStorage()
+            hash_storage.single_hash_file_name_base = work_hash_storage_file
+            #hash_storage.suppress_hash_file_comments = True
+
+            hash_storage.preserve_unused_hash_records = True
+            hash_storage.hash_file_header_comments = [
+                "Timestamp of hash calculation: 2020-08-19 23:40:09 UTC+03:00",
+                "Hash algorithm: sha1"]
+
+            #hash_storage.json_format = True
+
+            hash_storage.load_hashes_info()
+            
+            #hash_storage.save_hashes_info()
+            hash_storage.json_format = True
+            hash_storage.save_hashes_info()
+            hash_storage.save_hashes_info()
+
+            data_hash_storage_file_expected = data_hash_storage_file + ".save"
+
+            self.assertTrue(filecmp.cmp(work_hash_storage_file, data_hash_storage_file_expected, shallow=False), f"Wrong output in '{work_hash_storage_file}'")
+
+
 if __name__ == '__main__':
     run_single_test = True
     if run_single_test:
         # Run single test
         # https://docs.python.org/3/library/unittest.html#organizing-test-code
         suite = unittest.TestSuite()
-        suite.addTest(SingleFileHashesStorageTestCase("test_hash_storages_load_save"))
+        suite.addTest(SingleFileHashesStorageTestCase("test_json_hash_storages_load_save"))
         runner = unittest.TextTestRunner()
         runner.run(suite)
     else:

@@ -3,13 +3,14 @@ import os
 import util
 import re
 import locale
+import json
 
 class HashStorageAbstract(abc.ABC):
 
     def __init__(self):
         self.hash_file_name_postfix = ""
         self.use_absolute_file_names = False
-        self.hash_file_header_comments = None # The default is None to throw exception if not assigned so to catch error early
+        self.hash_file_header_comments = None # It should contain list of strings. The default is None to throw exception if not assigned so to catch error early
         self.suppress_hash_file_comments = False
         self.norm_case_file_names = False
 
@@ -77,7 +78,8 @@ class HashPerFileStorage(HashStorageAbstract):
         # Ref: https://stackoverflow.com/questions/6159900/correct-way-to-write-line-to-file
         with open(hash_file_name, 'w') as hash_file:
             if not self.suppress_hash_file_comments:
-                hash_file.write(self.hash_file_header_comments)
+                comments = "# " + "\n# ".join(self.hash_file_header_comments)
+                hash_file.write(comments)
             if self.use_absolute_file_names:
                 data_file_name_user = os.path.abspath(data_file_name)
             else:
@@ -97,6 +99,7 @@ class SingleFileHashesStorage(HashStorageAbstract):
         self.hash_data = dict()
         self.preserve_unused_hash_records = False
         self.sort_by_hash_value = False
+        self.json_format = False # Use JSON format for reading and writting data
 
     def __input_hash_file_error_message(self, error_message, hash_file_name, lineIndex, line):
         return f"{error_message}.\n    File {hash_file_name}, Line {lineIndex}: {line[0:200]}"
@@ -152,40 +155,73 @@ class SingleFileHashesStorage(HashStorageAbstract):
 
     def save_hashes_info(self):
         hash_file_name = self.get_hash_file_name(None)
-        with open(hash_file_name, "w") as hash_file:
-            if not self.suppress_hash_file_comments:
-                hash_file.write(self.hash_file_header_comments)
 
-            hash_data_sorted = []
+        if self.json_format:
+            json_data = {}
 
-            # Ref: https://stackoverflow.com/questions/3294889/iterating-over-dictionaries-using-for-loops
-            #for data_file_name, hash in self.hash_data.items():
-            for data_file_name, hash in self.hash_data.items():
-                if self.use_absolute_file_names:
-                    data_file_name_user = data_file_name
-                    assert os.path.isabs(data_file_name_user)
-                else:
-                    data_file_name_user = util.rel_file_path(data_file_name, hash_file_name, False)
-                hash_data_sorted.append((data_file_name_user, hash))
-
-            if self.sort_by_hash_value:
-                # Sort by hash. If hashes equal, sort by file name
-                key1 = lambda v: (v[1][0].lower(), locale.strxfrm(v[0]).casefold(), locale.strxfrm(v[0]))
+        if not self.suppress_hash_file_comments:
+            if self.json_format:
+                # Ref: https://stackoverflow.com/questions/244777/can-comments-be-used-in-json
+                json_data["_comment"] = self.hash_file_header_comments
+                pass
             else:
-                # Ref: https://stackoverflow.com/questions/1097908/how-do-i-sort-unicode-strings-alphabetically-in-python
-                # Ref: https://stackoverflow.com/a/50437802/13441
-                # Ref: https://stackoverflow.com/a/1318709/13441
-                key1 = lambda v: (locale.strxfrm(v[0]).casefold(), locale.strxfrm(v[0]))
+                comments = "# " + "\n# ".join(self.hash_file_header_comments) + "\n"
+                with open(hash_file_name, "w") as hash_file:
+                    hash_file.write(comments)
+
+        if self.json_format:
+            # We added data after _comment, so the "_comment" follow above the data.
+            # Strictly speaking JSON writer may not preserve such order, but usually does.
+            json_data["data"] = []
+
+        hash_data_sorted = []
+
+        # Ref: https://stackoverflow.com/questions/3294889/iterating-over-dictionaries-using-for-loops
+        #for data_file_name, hash in self.hash_data.items():
+        for data_file_name, hash in self.hash_data.items():
+            if self.use_absolute_file_names:
+                data_file_name_user = data_file_name
+                assert os.path.isabs(data_file_name_user)
+            else:
+                data_file_name_user = util.rel_file_path(data_file_name, hash_file_name, False)
+            hash_data_sorted.append((data_file_name_user, hash))
+
+        if self.sort_by_hash_value:
+            # Sort by hash. If hashes equal, sort by file name
+            key1 = lambda v: (v[1][0].lower(), locale.strxfrm(v[0]).casefold(), locale.strxfrm(v[0]))
+        else:
+            # Ref: https://stackoverflow.com/questions/1097908/how-do-i-sort-unicode-strings-alphabetically-in-python
+            # Ref: https://stackoverflow.com/a/50437802/13441
+            # Ref: https://stackoverflow.com/a/1318709/13441
+            key1 = lambda v: (locale.strxfrm(v[0]).casefold(), locale.strxfrm(v[0]))
                 
-            hash_data_sorted.sort(key=key1)
+        hash_data_sorted.sort(key=key1)
+
+        try:
+            if not self.json_format:
+                hash_file = open(hash_file_name, "a")
 
             for data_file_name, hash_info in hash_data_sorted:
                 # Check that current hash entry should be stored
                 if self.preserve_unused_hash_records or hash_info[1]:
-                    hash_file.write(f"{hash_info[0]} *{data_file_name}\n")
+                    if self.json_format:
+                        json_data["data"].append({"file_name": data_file_name, "hash": hash_info[0]})
+                    else:
+                        hash_file.write(f"{hash_info[0]} *{data_file_name}\n")
+        finally:
+            if not self.json_format:
+                hash_file.close()
 
-            if not self.suppress_hash_file_comments:
-                hash_file.write("# End of file\n")
+        if not self.suppress_hash_file_comments:
+            if not self.json_format:
+                with open(hash_file_name, "a") as hash_file:
+                    hash_file.write("# End of file\n")
+
+        if self.json_format:
+            with open(hash_file_name, 'w', encoding="utf-8") as f:
+                # Ref: https://stackoverflow.com/questions/12943819/how-to-prettyprint-a-json-file
+                # Ref: https://stackoverflow.com/questions/16291358/python-saving-json-files-as-utf-8
+                json.dump(json_data, f, indent=4, ensure_ascii=False)
 
     def get_hash_file_name(self, _):
         ret = f"{self.single_hash_file_name_base}{self.hash_file_name_postfix}"

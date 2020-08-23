@@ -76,6 +76,7 @@ def parse_cmd_line():
         parser.add_argument('--suppress-output-file-comments', help="Don't add comments to output files. E.g. timestamp when hash generated", action="store_true")
         parser.add_argument('--use-absolute-file-names', help="Use absolute file names in output. If argument is not specified, relative file names used", action="store_true")
         parser.add_argument('--single-hash-file-name-base', help="If specified then all hashes are stored in one file specified as a value for this argument. Final file name include postfix", action="append")
+        parser.add_argument('--single-hash-file-name-base-json', help="This is the same key as --single-hash-file-name-base. But postfix json is added. Result data stored in JSON", action="append")
         parser.add_argument('--suppress-hash-file-name-postfix', help="Suppress adding postfix in the hash file name for hash algo name", action="store_true")
         parser.add_argument('--preserve-unused-hash-records', action="store_true",
                             help="This key works with --single-hash-file-name-base. By default if file with hashes already exists then records for files which not handled deleted to avoid. "
@@ -98,8 +99,18 @@ def parse_cmd_line():
         if cmd_line_args.pause_after_file and cmd_line_args.pause_after_file < 0:
             parser.error('--pause-after-file must be non-negative')
 
-        if cmd_line_args.single_hash_file_name_base and len(cmd_line_args.single_hash_file_name_base) > 1:
-            parser.error("single-hash-file-name-base should be either specified once or not specified")
+        if len(cmd_line_args.single_hash_file_name_base) > 0 and len(cmd_line_args.single_hash_file_name_base_json) > 0:
+            parser.error("--single-hash-file-name-base and --single-hash-file-name-base-json are mutually exclusive. Only one of them can be specified")
+
+        if cmd_line_args.single_hash_file_name_base:
+            if len(cmd_line_args.single_hash_file_name_base) > 1:
+                parser.error("--single-hash-file-name-base should be either specified once or not specified")
+            cmd_line_args.single_hash_file_name_base = cmd_line_args.single_hash_file_name_base[0]
+
+        if cmd_line_args.single_hash_file_name_base_json:
+            if len(cmd_line_args.single_hash_file_name_base_json) > 1:
+                parser.error("--single-hash-file-name-base-json should be either specified once or not specified")
+            cmd_line_args.single_hash_file_name_base_json = cmd_line_args.single_hash_file_name_base_json[0]
 
     except SystemExit as se:
         # Check if error is related to invalid command line parameters
