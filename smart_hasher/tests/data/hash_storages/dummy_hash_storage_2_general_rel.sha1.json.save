@@ -1,0 +1,32 @@
+{
+    "_comment": [
+        "Timestamp of hash calculation: 2020-08-19 23:40:09 UTC+03:00",
+        "Hash algorithm: sha1"
+    ],
+    "data": [
+        {
+            "file_name": "Lum.exe",
+            "hash": "06c4d8d95e9af2af1b55d586efb4841039b404b9"
+        },
+        {
+            "file_name": "lum1.exe",
+            "hash": "06c4d8d95e9af2af1b55d586efb4841039b43453"
+        },
+        {
+            "file_name": "name with spaces.mp4",
+            "hash": "8c36da23da39a0c45336e22e2535518d543257c8"
+        },
+        {
+            "file_name": "tmp.mp4",
+            "hash": "8c36da23da39a0c12f36e22e251893fd54325743"
+        },
+        {
+            "file_name": "Tmp1.mp4",
+            "hash": "8c36da23da39a0c45336e22e251833fd54325735"
+        },
+        {
+            "file_name": "tmp2.mp4",
+            "hash": "8c36da23da39a0c45336e22e2535518d543257c8"
+        }
+    ]
+}

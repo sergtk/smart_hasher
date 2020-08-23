@@ -127,7 +127,8 @@ class SimpleCommandLineTestCase(unittest.TestCase):
 
         # Check hash in output file without comments
 
-        os.system(f'smart_hasher --input-folder {self.work_path} --suppress-console-reporting-output --suppress-output-file-comments --hash-file-name-output-postfix test_hash')
+        exit_code = os.system(f'smart_hasher --input-folder {self.work_path} --suppress-console-reporting-output --suppress-output-file-comments --hash-file-name-output-postfix test_hash')
+        self.assertEqual(exit_code, cmd_line.ExitCode.OK)
 
         hash_file_name_expected = f'{self.data_path}/file1.txt.sha1';
         hash_file_name_actual = f'{self.work_path}/file1.txt.sha1.test_hash'; # Note, we also added postfix here in file name, so it is also check during testing
@@ -145,7 +146,8 @@ class SimpleCommandLineTestCase(unittest.TestCase):
 
         # Check hash in output file with comments
         
-        os.system(f'smart_hasher --input-folder {self.work_path} --suppress-console-reporting-output')
+        exit_code = os.system(f'smart_hasher --input-folder {self.work_path} --suppress-console-reporting-output')
+        self.assertEqual(exit_code, cmd_line.ExitCode.OK)
 
         hash_file_name_expected = f'{self.data_path}/file1.txt.sha1';
         hash_file_name_actual = f'{self.work_path}/file1.txt.sha1';
@@ -207,7 +209,7 @@ if __name__ == '__main__':
         # Run single test
         # https://docs.python.org/3/library/unittest.html#organizing-test-code
         suite = unittest.TestSuite()
-        suite.addTest(SimpleCommandLineTestCase('test_specify_non_existent_file'))
+        suite.addTest(SimpleCommandLineTestCase('test_calc_hash_with_comments_in_output_file'))
         runner = unittest.TextTestRunner()
         runner.run(suite)
     else:

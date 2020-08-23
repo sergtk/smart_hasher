@@ -78,7 +78,7 @@ class HashPerFileStorage(HashStorageAbstract):
         # Ref: https://stackoverflow.com/questions/6159900/correct-way-to-write-line-to-file
         with open(hash_file_name, 'w') as hash_file:
             if not self.suppress_hash_file_comments:
-                comments = "# " + "\n# ".join(self.hash_file_header_comments)
+                comments = "# " + "\n# ".join(self.hash_file_header_comments) + "\n"
                 hash_file.write(comments)
             if self.use_absolute_file_names:
                 data_file_name_user = os.path.abspath(data_file_name)
@@ -150,7 +150,7 @@ class SingleFileHashesStorage(HashStorageAbstract):
     def __load_hashes_info_from_json(self, hash_file_name):
         # Ref: https://stackabuse.com/reading-and-writing-json-to-a-file-in-python/
         # Ref: https://docs.python.org/2/library/json.html
-        with open(hash_file_name, "r") as f:
+        with open(hash_file_name, "r", encoding="utf-8") as f:
             json_data = json.load(f)
         for hash_record in json_data["data"]:
             data_file_name = hash_record["file_name"]
@@ -178,6 +178,10 @@ class SingleFileHashesStorage(HashStorageAbstract):
 
         if self.json_format:
             json_data = {}
+        else:
+            # Create empty file
+            # Ref: https://stackoverflow.com/questions/12654772/create-empty-file-using-python
+            open(hash_file_name, "w").close()
 
         if not self.suppress_hash_file_comments:
             if self.json_format:
@@ -186,7 +190,7 @@ class SingleFileHashesStorage(HashStorageAbstract):
                 pass
             else:
                 comments = "# " + "\n# ".join(self.hash_file_header_comments) + "\n"
-                with open(hash_file_name, "w") as hash_file:
+                with open(hash_file_name, "a") as hash_file:
                     hash_file.write(comments)
 
         if self.json_format:

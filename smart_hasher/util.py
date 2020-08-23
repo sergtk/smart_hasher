@@ -83,6 +83,9 @@ def rel_file_path(work_file_name, base_file_name, return_absolute_path = False):
         work_abs_path = os.path.abspath(work_abs_path)
         return work_abs_path
 
+    if not os.path.isabs(work_file_name):
+        return work_file_name
+
     work_full = os.path.abspath(work_file_name)
     work_dir = os.path.dirname(work_full)
     work_file = os.path.basename(work_full)

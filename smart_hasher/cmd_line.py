@@ -99,7 +99,8 @@ def parse_cmd_line():
         if cmd_line_args.pause_after_file and cmd_line_args.pause_after_file < 0:
             parser.error('--pause-after-file must be non-negative')
 
-        if len(cmd_line_args.single_hash_file_name_base) > 0 and len(cmd_line_args.single_hash_file_name_base_json) > 0:
+        if cmd_line_args.single_hash_file_name_base is not None and len(cmd_line_args.single_hash_file_name_base) > 0 and \
+           cmd_line_args.single_hash_file_name_base_json is not None and len(cmd_line_args.single_hash_file_name_base_json) > 0:
             parser.error("--single-hash-file-name-base and --single-hash-file-name-base-json are mutually exclusive. Only one of them can be specified")
 
         if cmd_line_args.single_hash_file_name_base:
