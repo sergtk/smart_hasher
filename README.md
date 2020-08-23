@@ -28,6 +28,7 @@ Please check [USAGE.md](USAGE.md) file
 * Multiple files on inputs, either by file names or folders with file masks allowed.
 * Many popular hash algorithms.
 * Save hashes for many input files in one output file or for one output file per input file.
+* JSON output
 * Output is sorted by file names. This is convenient to compare files with hashes, and operation system file order does not influence on such comparison.
 
 ## Developer doc
