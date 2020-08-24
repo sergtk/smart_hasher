@@ -324,6 +324,7 @@ class SingleFileHashesStorage(HashStorageAbstract):
         backup_hash_file_name = self.__get_backup_hash_file_name()
         if os.path.isfile(hash_file_name):
             shutil.copyfile(hash_file_name, backup_hash_file_name)
+	        #time.sleep(5)
 
     def __hash_file_del_backup(self):
         backup_hash_file_name = self.__get_backup_hash_file_name()
