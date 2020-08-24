@@ -38,9 +38,11 @@ exit_code_descriptions = {
     ExitCode.APP_USAGE_ERROR:                   "incorrect usage of the application",
 }
 
-# Ref: "Argparse Tutorial" https://docs.python.org/3/howto/argparse.html
-# Ref: "15.4.3. The add_argument() method" https://docs.python.org/2/library/argparse.html#the-add-argument-method
 def parse_cmd_line():
+    """    
+    Ref: "Argparse Tutorial" https://docs.python.org/3/howto/argparse.html
+    Ref: "15.4.3. The add_argument() method" https://docs.python.org/2/library/argparse.html#the-add-argument-method
+    """
 
     # Ref: https://developer.rhino3d.com/guides/rhinopython/python-statements/
     description = "This application is to calculate hashes of files with extended features: support of show progress,\n" \
@@ -55,6 +57,8 @@ def parse_cmd_line():
         description += "\n"
 
     calc = hash_calc.FileHashCalc()
+
+    autosave_timeout_default = 300
 
     try:
         # Ref: https://www.programcreek.com/python/example/6706/argparse.RawDescriptionHelpFormatter
@@ -88,6 +92,11 @@ def parse_cmd_line():
                             "Refer for details to https://docs.python.org/3/library/os.path.html#os.path.normcase")
         parser.add_argument('--sort-by-hash-value', action="store_true",
                             help="Specify to store hash records sorted by hash values in case when multiple hashes are stored in one file. By default without this option hash records are sorted by file name")
+        parser.add_argument('--autosave-timeout', default=autosave_timeout_default, type=int,
+                            help=f"Save accumulated hashes after interval specified as argument, in seconds (default: {autosave_timeout_default}). "
+                            "Specify 0 to save hash info after handling every file, this may result in large overhead when many files on input. "
+                            "Specify -1 to disable autosave, this may result the accumulated hash data missed if execution interrupts unexpectedly. "
+                            "This is essential when multiple hashes stored in one file.")
 
         # Ref: https://stackoverflow.com/questions/23032514/argparse-disable-same-argument-occurrences
         cmd_line_args = parser.parse_args()

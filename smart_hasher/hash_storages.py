@@ -16,6 +16,7 @@ class HashStorageAbstract(abc.ABC):
         self.hash_file_header_comments = None # It should contain list of strings. The default is None to throw exception if not assigned so to catch error early
         self.suppress_hash_file_comments = False
         self.norm_case_file_names = False
+        self.autosave_timeout = -1
 
     def _check_data_hash_files_names_equal(self, data_file_name, hash_file_name):
         """

@@ -222,6 +222,7 @@ try:
         hash_storage.hash_file_name_postfix = get_hash_file_name_postfix()
         hash_storage.use_absolute_file_names = cmd_line_args.use_absolute_file_names
         hash_storage.norm_case_file_names = cmd_line_args.norm_case_file_names
+        hash_storage.autosave_timeout = cmd_line_args.autosave_timeout
 
         hash_storage.load_hashes_info()
         e = handle_input_files(hash_storage)
