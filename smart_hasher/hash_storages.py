@@ -146,9 +146,15 @@ class SingleFileHashesStorage(HashStorageAbstract):
     def __input_hash_file_error_message(self, error_message, hash_file_name, lineIndex, line):
         return f"{error_message}.\n    File {hash_file_name}, Line {lineIndex}: {line[0:200]}"
 
-    def __load_hash_info_entry(self, data_file_name, hash):
+    def __load_hash_info_entry(self, data_file_name, hash, hash_file_name):
         if self.hash_data.get(data_file_name) is not None:
             raise util.AppUsageError(self.__input_hash_file_error_message("Input hash file contains duplicated entry for file '{data_file_name}'", hash_file_name, lineIndex, line))
+
+        #data_file_name =  os.path.abspath(data_file_name)
+        data_file_name = util.rel_file_path(data_file_name, hash_file_name, True)
+
+        if self.norm_case_file_names:
+            data_file_name = os.path.normcase(data_file_name)
                 
         # False in tuple specify that element was not accessed. This mean that it should not be saved in output file.
         # True should be later specfieid to save info
@@ -180,12 +186,7 @@ class SingleFileHashesStorage(HashStorageAbstract):
                 hash = match.group("hash").lower()
                 data_file_name = match.group("file")
 
-                #data_file_name =  os.path.abspath(data_file_name)
-                data_file_name = util.rel_file_path(data_file_name, hash_file_name, True)
-                if self.norm_case_file_names:
-                    data_file_name = os.path.normcase(data_file_name)
-
-                self.__load_hash_info_entry(data_file_name, hash)
+                self.__load_hash_info_entry(data_file_name, hash, hash_file_name)
 
                 line = f.readline()
                 lineIndex += 1
@@ -200,7 +201,7 @@ class SingleFileHashesStorage(HashStorageAbstract):
         for hash_record in json_data["data"]:
             data_file_name = hash_record["file_name"]
             hash = hash_record["hash"]
-            self.__load_hash_info_entry(data_file_name, hash)
+            self.__load_hash_info_entry(data_file_name, hash, hash_file_name)
 
     def load_hashes_info(self):
         if self.single_hash_file_name_base is None:
