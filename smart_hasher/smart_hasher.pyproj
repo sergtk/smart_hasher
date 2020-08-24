@@ -13,7 +13,7 @@
     <RootNamespace>smart_hasher</RootNamespace>
     <IsWindowsApplication>False</IsWindowsApplication>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>--input-file J:\tmp.mp4 --input-file j:\_русский_файл.mp4 --input-file J:\Luminar4Setup.exe --single-hash-file-name-base-json J:\hashes --autosave-timeout 0</CommandLineArguments>
+    <CommandLineArguments>--input-file J:\tmp.mp4 --input-file j:\_русский_файл.mp4 --input-file j:\_РУССКИЙ_файл.mp4 --input-file J:\Luminar4Setup.exe --single-hash-file-name-base-json J:\hashes</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <InterpreterId>MSBuild|Python 3.7 (32-bit)|$(MSBuildProjectFullPath)</InterpreterId>
     <TestFramework>unittest</TestFramework>
