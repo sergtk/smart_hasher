@@ -4,6 +4,9 @@ import util
 import re
 import locale
 import json
+import shutil
+import time
+import uuid
 
 class HashStorageAbstract(abc.ABC):
     """
@@ -137,6 +140,8 @@ class SingleFileHashesStorage(HashStorageAbstract):
         self.preserve_unused_hash_records = False
         self.sort_by_hash_value = False
         self.json_format = False # Use JSON format for reading and writting data
+        self.last_time_load_save = time.time() # Strictly speaking this is not correct value, but construction time is good value to avoid non-initialized variable
+        self.__backup_hash_file_name = ""
 
     def __input_hash_file_error_message(self, error_message, hash_file_name, lineIndex, line):
         return f"{error_message}.\n    File {hash_file_name}, Line {lineIndex}: {line[0:200]}"
@@ -213,7 +218,9 @@ class SingleFileHashesStorage(HashStorageAbstract):
         else:
             self.__load_hashes_info_from_text(hash_file_name)
 
-    def save_hashes_info(self):
+        self.last_time_load_save = time.time()
+
+    def __save_hashes_info_file(self):
         hash_file_name = self.get_hash_file_name(None)
 
         if self.json_format:
@@ -287,14 +294,47 @@ class SingleFileHashesStorage(HashStorageAbstract):
                 # Ref: https://stackoverflow.com/questions/16291358/python-saving-json-files-as-utf-8
                 json.dump(json_data, f, indent=4, ensure_ascii=False)
 
+    def save_hashes_info(self):
+        self.__hash_file_make_backup()
+        self.__save_hashes_info_file()
+        # Note, in case of exception backup is not cleaned up. But actually this is what we want, because in case of exception we may need to restore data from backup.
+        self.__hash_file_del_backup()
+        self.last_time_load_save = time.time()
+
     def get_hash_file_name(self, _):
         ret = f"{self.single_hash_file_name_base}{self.hash_file_name_postfix}"
         return ret
+
+    def __get_backup_hash_file_name(self):
+        """
+        Return backup file name based on hash file name. Hash file name should be prefix of it
+
+        If there is backup file name then it is generated.
+        """
+        hash_file_name = self.get_hash_file_name(None)
+        if self.__backup_hash_file_name.startswith(hash_file_name):
+            return self.__backup_hash_file_name
+
+        # Ref: https://docs.python.org/2/library/uuid.html
+        self.__backup_hash_file_name = f"{hash_file_name}.back.{uuid.uuid1()}"
+        return self.__backup_hash_file_name
+
+    def __hash_file_make_backup(self):
+        hash_file_name = self.get_hash_file_name(None)
+        backup_hash_file_name = self.__get_backup_hash_file_name()
+        if os.path.isfile(hash_file_name):
+            shutil.copyfile(hash_file_name, backup_hash_file_name)
+
+    def __hash_file_del_backup(self):
+        backup_hash_file_name = self.__get_backup_hash_file_name()
+        if os.path.isfile(backup_hash_file_name):
+            os.remove(backup_hash_file_name)
 
     def has_hash(self, data_file_name):
         self._check_data_hash_files_names_equal(data_file_name, self.get_hash_file_name(None))
 
         fn = os.path.abspath(data_file_name)
+        fn = util.drive_normcase(fn)
         # Ref: https://docs.python.org/3.2/library/os.path.html#os.path.normcase
         if self.norm_case_file_names:
             fn = os.path.normcase(fn)
@@ -303,11 +343,29 @@ class SingleFileHashesStorage(HashStorageAbstract):
             self.hash_data[fn] = (self.hash_data[fn][0], True)
         return ret
 
+    def __autosave_if_needed(self):
+        if self.autosave_timeout == -1:
+            return
+
+        if self.autosave_timeout == 0:
+            self.save_hashes_info()
+            return
+
+        # Ref: https://stackoverflow.com/questions/3638532/find-time-difference-in-seconds-as-an-integer-with-python
+        # Ref: https://docs.python.org/3/library/time.html#time.time
+        if time.time() - self.last_time_load_save > self.autosave_timeout:
+            self.save_hashes_info()
+            return
+
     def set_hash(self, data_file_name, hash_value):
         self._check_data_hash_files_names_equal(data_file_name, self.get_hash_file_name(None))
 
         fn = os.path.abspath(data_file_name)
+        fn = util.drive_normcase(fn)
+
         # Ref: https://docs.python.org/3.2/library/os.path.html#os.path.normcase
         if self.norm_case_file_names:
             fn = os.path.normcase(fn)
         self.hash_data[fn] = (hash_value, True)
+
+        self.__autosave_if_needed()

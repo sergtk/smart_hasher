@@ -123,6 +123,16 @@ def rel_file_path(work_file_name, base_file_name, return_absolute_path = False):
 
     return ret
 
+def drive_normcase(path):
+    """
+    Norm case for drive letter.
+    Note this is not the same as `normcase()` for path.
+    """
+    drive, tail = os.path.splitdrive(path)
+    drive = drive.upper()
+    ret = os.path.join(drive, tail)
+    return ret
+
 
 class AppUsageError(Exception):
     """
