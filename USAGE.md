@@ -16,6 +16,7 @@
                            [--suppress-hash-file-name-postfix]
                            [--preserve-unused-hash-records]
                            [--norm-case-file-names] [--sort-by-hash-value]
+                           [--autosave-timeout AUTOSAVE_TIMEOUT]
 
     This application is to calculate hashes of files with extended features: support of show progress,
     folders and file masks for multiple files, skip calculation of handled files etc...
@@ -104,3 +105,12 @@
                             case when multiple hashes are stored in one file. By
                             default without this option hash records are sorted by
                             file name
+      --autosave-timeout AUTOSAVE_TIMEOUT
+                            Save accumulated hashes after interval specified as
+                            argument, in seconds (default: 300). Specify 0 to save
+                            hash info after handling every file, this may result
+                            in large overhead when many files on input. Specify -1
+                            to disable autosave, this may result the accumulated
+                            hash data missed if execution interrupts unexpectedly.
+                            This is essential when multiple hashes stored in one
+                            file.
