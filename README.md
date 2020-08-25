@@ -1,4 +1,4 @@
-# Smart hasher
+# Smart Hasher
 
 ## About application
 

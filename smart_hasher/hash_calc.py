@@ -19,7 +19,7 @@ class FileHashCalc(object):
         self.file_chunk_size = 1024 * 1024
         self.result = None
         self.retry_count_on_data_read_error = 5
-        self.retry_pause_on_data_read_error = 30
+        self.retry_pause_on_data_read_error = 60 # in seconds
 
     # Ref: https://docs.python.org/2/library/hashlib.html
     def __get_hasher(self, hash_str):
@@ -136,7 +136,7 @@ class FileHashCalc(object):
                 if (not util.pause(self.retry_pause_on_data_read_error)):
                     return self.ReturnCode.PROGRAM_INTERRUPTED_BY_USER
                 if cur_try < self.retry_count_on_data_read_error:
-                    self._print(f"Retry {cur_try + 1} of {self.retry_count_on_data_read_error}...")
+                    self._print(f"Retry {cur_try + 1} of {self.retry_count_on_data_read_error}")
                 else:
-                    self._print(f"Skip file. The hash for it can't be calculated due to the errors.")
+                    self._print(f"Skip file. The hash for it can't be calculated due to the errors.\n")
                     return self.ReturnCode.DATA_READ_ERROR
