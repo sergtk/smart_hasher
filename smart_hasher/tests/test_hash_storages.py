@@ -55,7 +55,7 @@ class SingleFileHashesStorageTestCase(unittest.TestCase):
             work_hash_storage_file = os.path.join(self.work_path, hash_storage_file)
             shutil.copyfile(data_hash_storage_file, work_hash_storage_file)
 
-            cl = f"smart_hasher --input-folder {self.work_path} --input-folder-file-mask-exclude * --suppress-output-file-comments " \
+            cl = f"smart_hasher --input-folder {self.work_path} --input-folder-file-mask-exclude * --suppress-output-file-comments --suppress-console-reporting-output " \
                  f"--single-hash-file-name-base {work_hash_storage_file} --suppress-hash-file-name-postfix " \
                  f"--preserve-unused-hash-records"
 
@@ -74,7 +74,7 @@ class SingleFileHashesStorageTestCase(unittest.TestCase):
         work_hash_storage_file = os.path.join(self.work_path, hash_storage_file)
         shutil.copyfile(data_hash_storage_file, work_hash_storage_file)
 
-        cl = f"smart_hasher --input-folder {self.work_path} --input-folder-file-mask-exclude * --suppress-output-file-comments " \
+        cl = f"smart_hasher --input-folder {self.work_path} --input-folder-file-mask-exclude * --suppress-output-file-comments --suppress-console-reporting-output " \
              f"--single-hash-file-name-base {work_hash_storage_file} --suppress-hash-file-name-postfix --use-absolute-file-names " \
              f"--preserve-unused-hash-records"
 
