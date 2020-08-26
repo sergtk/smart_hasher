@@ -238,9 +238,9 @@ try:
         exit_code = handle_input_files(hash_storage)
         hash_storage.save_hashes_info() # Note, hash info is not stored on exception, because it is not clear if we can trust to that data
 
-        #print("e = {0}".format(e))
-        # Ref: https://stackoverflow.com/questions/24487405/enum-getting-value-of-enum-on-string-conversion
-        print(f"ExitCode: {exit_code.name} ({exit_code})")
+        if not cmd_line_args.suppress_console_reporting_output:
+            # Ref: https://stackoverflow.com/questions/24487405/enum-getting-value-of-enum-on-string-conversion
+            print(f"ExitCode: {exit_code.name} ({exit_code})")
         sys.exit(int(exit_code))
 
 except SystemExit as se:

@@ -123,7 +123,7 @@ class HashPerFileStorage(HashStorageAbstract):
             if self.norm_case_file_names:
                 data_file_name_user = os.path.normcase(data_file_name_user)
 
-            hash_file.write(hash_value + " *" + data_file_name_user + "\n")
+            hash_file.write(f"{hash_value} *{data_file_name_user}\n")
 
 class SingleFileHashesStorage(HashStorageAbstract):
     """
@@ -222,6 +222,13 @@ class SingleFileHashesStorage(HashStorageAbstract):
         self.last_time_load_save = time.time()
 
     def __save_hashes_info_file(self):
+        if not self.suppress_hash_file_comments:
+            all_comments = self.hash_file_header_comments
+            # Ref: https://blog.finxter.com/python-how-to-count-elements-in-a-list-matching-a-condition/
+            # Ref: https://stackoverflow.com/questions/3013449/list-comprehension-vs-lambda-filter
+            record_number = sum((v[1][1] or self.preserve_unused_hash_records) for v in self.hash_data.items())
+            all_comments.append(f"Number of records: {record_number}.")
+
         hash_file_name = self.get_hash_file_name(None)
 
         if self.json_format:
@@ -234,12 +241,12 @@ class SingleFileHashesStorage(HashStorageAbstract):
         if not self.suppress_hash_file_comments:
             if self.json_format:
                 # Ref: https://stackoverflow.com/questions/244777/can-comments-be-used-in-json
-                json_data["_comment"] = self.hash_file_header_comments
+                json_data["_comment"] = all_comments
                 pass
             else:
-                comments = "# " + "\n# ".join(self.hash_file_header_comments) + "\n"
+                comment_str = "# " + "\n# ".join(all_comments) + "\n"
                 with open(hash_file_name, "a") as hash_file:
-                    hash_file.write(comments)
+                    hash_file.write(comment_str)
 
         if self.json_format:
             # We added data after _comment, so the "_comment" follow above the data.
