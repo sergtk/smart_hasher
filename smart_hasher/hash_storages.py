@@ -223,7 +223,7 @@ class SingleFileHashesStorage(HashStorageAbstract):
 
     def __save_hashes_info_file(self):
         if not self.suppress_hash_file_comments:
-            all_comments = self.hash_file_header_comments
+            all_comments = self.hash_file_header_comments.copy()
             # Ref: https://blog.finxter.com/python-how-to-count-elements-in-a-list-matching-a-condition/
             # Ref: https://stackoverflow.com/questions/3013449/list-comprehension-vs-lambda-filter
             record_number = sum((v[1][1] or self.preserve_unused_hash_records) for v in self.hash_data.items())
