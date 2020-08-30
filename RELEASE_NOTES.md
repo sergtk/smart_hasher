@@ -10,7 +10,7 @@ Stub
 
 Stub
 
-## Release 1.0.0 (2020.08.30)
+## Release v1.0.0 (2020.08.30)
 
 [+] Initial release (#28, 2020.08.30)
 
