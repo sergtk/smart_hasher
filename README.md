@@ -16,10 +16,6 @@ Utility just check if hash already calculated, and skip calulcation for that fil
 
 To calculate hash for already calculated file, you may add postfix for output files, in such a way you may have several hash files, which are easy to compare
 
-## Usage
-
-Please check [USAGE.md](USAGE.md) file
-
 ## Some features supported
 
 * Show speed for overall file and current speed. This is especially useful on non-robust connection.
@@ -30,6 +26,14 @@ Please check [USAGE.md](USAGE.md) file
 * Save hashes for many input files in one output file or for one output file per input file.
 * JSON output
 * Output is sorted by file names. This is convenient to compare files with hashes, and operation system file order does not influence on such comparison.
+
+## Usage
+
+Please check [USAGE.md](USAGE.md) file
+
+## Release notes
+
+Please check [RELEASE_NOTES.md](RELEASE_NOTES.md) file
 
 ## Developer doc
 
