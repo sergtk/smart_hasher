@@ -130,8 +130,8 @@ class SimpleCommandLineTestCase(unittest.TestCase):
         exit_code = os.system(f'smart_hasher --input-folder {self.work_path} --suppress-console-reporting-output --suppress-output-file-comments --hash-file-name-output-postfix test_hash')
         self.assertEqual(exit_code, cmd_line.ExitCode.OK)
 
-        hash_file_name_expected = f'{self.data_path}/file1.txt.sha1';
-        hash_file_name_actual = f'{self.work_path}/file1.txt.sha1.test_hash'; # Note, we also added postfix here in file name, so it is also check during testing
+        hash_file_name_expected = f'{self.data_path}/file1.txt.sha1'
+        hash_file_name_actual = f'{self.work_path}/file1.txt.sha1.test_hash' # Note, we also added postfix here in file name, so it is also check during testing
 
         with open(hash_file_name_expected, mode='r') as hash_file_expected:
             hash_expected = hash_file_expected.read()
@@ -178,6 +178,35 @@ class SimpleCommandLineTestCase(unittest.TestCase):
         # Ref: https://docs.python.org/3.7/library/filecmp.html
         self.assertTrue(filecmp.cmp(data_file_name, work_file_name, shallow=False), f"Input data file is corrupted! ({work_file_name})")
 
+    def test_calc_hash_with_user_comments(self):
+        shutil.copyfile(f'{self.data_path}/file1.txt', f'{self.work_path}/file1.txt')
+
+        # We check that following string are in output file comments
+        user_comments = {"aaa-bbb-ccc", "Это кириллица", "English phrase"}
+        user_comments_args = ""
+        for uc in user_comments:
+            uc1 = uc
+            if " " in uc1:
+                uc1 = f'"{uc1}"'
+            uc1 = f" --user-comment {uc1}"
+            user_comments_args += uc1
+
+        exit_code = os.system(f'smart_hasher --input-folder {self.work_path} --suppress-console-reporting-output {user_comments_args}')
+        self.assertEqual(exit_code, cmd_line.ExitCode.OK)
+
+        with open(f'{self.work_path}/file1.txt.sha1') as hash_file:
+            line = hash_file.readline()
+            while line:
+                if line.startswith("#"):
+                    for uc in user_comments:
+                        if uc in line:
+                            user_comments.remove(uc)
+                            break
+                line = hash_file.readline()
+
+        self.assertTrue(len(user_comments) == 0, f"Some user comments are not stored in output hash file: {' ,'.join(user_comments)}")
+                    
+
     #@unittest.skip("This is sandbox, actually not unit test")
     def _test_sandbox(self):
         # Ref: https://docs.python.org/3/library/tracemalloc.html
@@ -209,7 +238,7 @@ if __name__ == '__main__':
         # Run single test
         # https://docs.python.org/3/library/unittest.html#organizing-test-code
         suite = unittest.TestSuite()
-        suite.addTest(SimpleCommandLineTestCase('test_calc_hash_with_comments_in_output_file'))
+        suite.addTest(SimpleCommandLineTestCase('test_calc_hash_with_user_comments'))
         runner = unittest.TextTestRunner()
         runner.run(suite)
     else:

@@ -223,11 +223,11 @@ class SingleFileHashesStorage(HashStorageAbstract):
 
     def __save_hashes_info_file(self):
         if not self.suppress_hash_file_comments:
-            all_comments = self.hash_file_header_comments.copy()
+            all_header_comments = self.hash_file_header_comments.copy()
             # Ref: https://blog.finxter.com/python-how-to-count-elements-in-a-list-matching-a-condition/
             # Ref: https://stackoverflow.com/questions/3013449/list-comprehension-vs-lambda-filter
             record_number = sum((v[1][1] or self.preserve_unused_hash_records) for v in self.hash_data.items())
-            all_comments.append(f"Number of records: {record_number}.")
+            all_header_comments.append(f"Number of records: {record_number}.")
 
         hash_file_name = self.get_hash_file_name(None)
 
@@ -241,10 +241,10 @@ class SingleFileHashesStorage(HashStorageAbstract):
         if not self.suppress_hash_file_comments:
             if self.json_format:
                 # Ref: https://stackoverflow.com/questions/244777/can-comments-be-used-in-json
-                json_data["_comment"] = all_comments
+                json_data["_comment"] = all_header_comments
                 pass
             else:
-                comment_str = "# " + "\n# ".join(all_comments) + "\n"
+                comment_str = "# " + "\n# ".join(all_header_comments) + "\n"
                 with open(hash_file_name, "a") as hash_file:
                     hash_file.write(comment_str)
 

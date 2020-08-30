@@ -17,8 +17,9 @@
                            [--preserve-unused-hash-records]
                            [--norm-case-file-names] [--sort-by-hash-value]
                            [--autosave-timeout AUTOSAVE_TIMEOUT]
+                           [--user-comment USER_COMMENT]
 
-    This application is to calculate hashes of files with extended features: support of show progress,
+    This is a command line tool to calculate hashes for one or many files at once with many convenient features: support of show progress,
     folders and file masks for multiple files, skip calculation of handled files etc...
 
     Application exit codes:
@@ -65,7 +66,7 @@
                             5)
       --retry-pause-on-data-read-error RETRY_PAUSE_ON_DATA_READ_ERROR
                             Specify pause before retrying on data read error, in
-                            seconds (default: 30)
+                            seconds (default: 60)
       --force-calc-hash, -fch
                             If specified than hash calculated always. If not, then
                             hash is not calculated if file with hash already exist
@@ -93,8 +94,9 @@
       --preserve-unused-hash-records
                             This key works with --single-hash-file-name-base. By
                             default if file with hashes already exists then
-                            records for files which not handled deleted to avoid.
-                            If this key specified, then they preserved
+                            records for files which not handled are deleted to
+                            avoid records for non-existing files. If this key
+                            specified, then such records preserved in hash file
       --norm-case-file-names
                             Use normalized case of file names on output. This is
                             more robust, but file names may differ which may look
@@ -114,3 +116,6 @@
                             hash data missed if execution interrupts unexpectedly.
                             This is essential when multiple hashes stored in one
                             file.
+      --user-comment USER_COMMENT, -uc USER_COMMENT
+                            Specify comment which will be added to output hash
+                            file

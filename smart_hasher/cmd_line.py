@@ -30,6 +30,7 @@ class ExitCode(enum.IntEnum):
             return self.value < other.value
         raise Exception("Incompartible arguments")
 
+#  Description for some error codes especially for ones which are not self descriptive, or have some specific details
 exit_code_descriptions = {
     ExitCode.OK:                                "everthing fine. Program executed successfully",
     ExitCode.OK_SKIPPED_ALREADY_CALCULATED:     "everything fine. OK may be returned anyway\n     if file(s) is skipped because the hash is already calculated.",
@@ -45,7 +46,7 @@ def parse_cmd_line():
     """
 
     # Ref: https://developer.rhino3d.com/guides/rhinopython/python-statements/
-    description = "This application is to calculate hashes of files with extended features: support of show progress,\n" \
+    description = "This is a command line tool to calculate hashes for one or many files at once with many convenient features: support of show progress,\n" \
         "folders and file masks for multiple files, skip calculation of handled files etc...\n\n"
     
     description += "Application exit codes:\n"
@@ -85,8 +86,8 @@ def parse_cmd_line():
         parser.add_argument('--single-hash-file-name-base-json', help="This is the same key as --single-hash-file-name-base. But postfix json is added. Result data stored in JSON", action="append")
         parser.add_argument('--suppress-hash-file-name-postfix', help="Suppress adding postfix in the hash file name for hash algo name", action="store_true")
         parser.add_argument('--preserve-unused-hash-records', action="store_true",
-                            help="This key works with --single-hash-file-name-base. By default if file with hashes already exists then records for files which not handled deleted to avoid. "
-                            "If this key specified, then they preserved")
+                            help="This key works with --single-hash-file-name-base. By default if file with hashes already exists then records for files which not handled are deleted to avoid records for non-existing files. "
+                            "If this key specified, then such records preserved in hash file")
         parser.add_argument('--norm-case-file-names', action="store_true",
                             help="Use normalized case of file names on output. This is more robust, but file names may differ which may look inconvenient. It is also platform dependent. "
                             "Refer for details to https://docs.python.org/3/library/os.path.html#os.path.normcase")
@@ -97,6 +98,7 @@ def parse_cmd_line():
                             "Specify 0 to save hash info after handling every file, this may result in large overhead when many files on input. "
                             "Specify -1 to disable autosave, this may result the accumulated hash data missed if execution interrupts unexpectedly. "
                             "This is essential when multiple hashes stored in one file.")
+        parser.add_argument('--user-comment', '-uc', action="append", help="Specify comment which will be added to output hash file")
 
         # Ref: https://stackoverflow.com/questions/23032514/argparse-disable-same-argument-occurrences
         cmd_line_args = parser.parse_args()
