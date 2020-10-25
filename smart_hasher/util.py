@@ -6,7 +6,6 @@ import os
 # Ref: https://en.wikipedia.org/wiki/Megabyte
 size_names = ("B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB")
 
-
 def convert_size_to_display(size_bytes: float) -> str:
     """
     This function convert size in bytes to human readable presentation.
@@ -18,11 +17,20 @@ def convert_size_to_display(size_bytes: float) -> str:
 
     if size_bytes == 0:
        return "0 " + size_names[0]
-    # size_names = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+
+    if size_bytes < 0:
+        sign = "-"
+        size_bytes = -size_bytes
+    else:
+        sign = ""
+
+    if size_bytes == math.inf:
+        return f"{sign}infinity";
+
     i = int(math.floor(math.log(size_bytes, 1024)))
     p = math.pow(1024, i)
     s = round(size_bytes / p, 2)
-    return "%s %s" % (s, size_names[i])
+    return f"{sign}{s} {size_names[i]}"
 
 def is_program_interrupted_by_user():
     """

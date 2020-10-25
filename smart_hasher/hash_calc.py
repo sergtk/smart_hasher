@@ -46,6 +46,8 @@ class FileHashCalc(object):
         """
         Ref: https://stackoverflow.com/questions/9181859/getting-percentage-complete-of-an-md5-checksum
         """
+
+        self.result = None
         
         if self.file_name is None:
             raise Exception("File name is not specified")
