@@ -4,7 +4,7 @@
 
 ### New in this release
 
-Stub
+[*] Fix the application crash during daylight time switch (#34)
 
 ## Internal changes
 
