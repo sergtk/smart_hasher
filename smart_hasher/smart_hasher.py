@@ -144,12 +144,20 @@ def handle_input_files(hash_storage: hash_storages.HashStorageAbstract):
 
     if (cmd_line_args.input_file):
         for input_file_name in cmd_line_args.input_file:
+            if not os.path.isfile(input_file_name):
+                if not cmd_line_args.suppress_console_reporting_output:
+                    print(f"Input file does not exist: {input_file_name}")
+                return cmd_line.ExitCode.DATA_READ_ERROR
             input_file_names.append(input_file_name)
 
     if (cmd_line_args.input_folder):
         # Ref: https://docs.python.org/3/library/os.html#os.walk
         # Ref: https://www.pythoncentral.io/how-to-traverse-a-directory-tree-in-python-guide-to-os-walk/
         for input_folder in cmd_line_args.input_folder:
+            if not os.path.isdir(input_folder):
+                if not cmd_line_args.suppress_console_reporting_output:
+                    print(f"Input folder does not exist: {input_folder}")
+                return cmd_line.ExitCode.DATA_READ_ERROR
             for dir_name, subdir_list, file_list in os.walk(input_folder):
                 for base_file_name in file_list:
                     input_file_name = os.path.join(dir_name, base_file_name)

@@ -27,23 +27,30 @@ class SimpleCommandLineTestCase(unittest.TestCase):
 
     def test_calc_hash_for_one_small_file_sha1(self):
 
-        data_file_name = f'{self.work_path}/file1.txt';
+		# Without and with input folder trailing slash
+        for input_folder_traling in ["", "\\"]:
 
-        shutil.copyfile(f'{self.data_path}/file1.txt', data_file_name)
+            tests.util_test.clean_work_dir()
 
-        os.system(f'smart_hasher --input-folder {self.work_path} --suppress-console-reporting-output --suppress-output-file-comments')
+            data_file_name = f'{self.work_path}/file1.txt';
+
+            shutil.copyfile(f'{self.data_path}/file1.txt', data_file_name)
+
+            cmd = f'smart_hasher --input-folder {self.work_path}{input_folder_traling} --suppress-output-file-comments --suppress-console-reporting-output'
+            exit_code = os.system(cmd)
+            self.assertEqual(exit_code, cmd_line.ExitCode.OK)
         
-        with open(f'{self.data_path}/file1.txt.sha1', mode='r') as sha1_expected_file:
-            sha1_expected = sha1_expected_file.read()
+            with open(f'{self.data_path}/file1.txt.sha1', mode='r') as sha1_expected_file:
+                sha1_expected = sha1_expected_file.read()
 
-        with open(f'{self.work_path}/file1.txt.sha1', mode='r') as sha1_actual_file:
-            sha1_actual = sha1_actual_file.read()
-        sha1_actual = sha1_actual[:40]
+            with open(f'{self.work_path}/file1.txt.sha1', mode='r') as sha1_actual_file:
+                sha1_actual = sha1_actual_file.read()
+            sha1_actual = sha1_actual[:40]
 
-        self.assertEqual(sha1_expected, sha1_actual, f'Wrong sha1-hash for file "file1.txt". Expected: "{sha1_expected}", actual: "{sha1_actual}"')
+            self.assertEqual(sha1_expected, sha1_actual, f'Wrong sha1-hash for file "file1.txt". Expected: "{sha1_expected}", actual: "{sha1_actual}"')
 
-        # Ref: https://docs.python.org/3.7/library/filecmp.html
-        self.assertTrue(filecmp.cmp(f'{self.data_path}/file1.txt', data_file_name, shallow=False), f"Input data file is corrupted! ({data_file_name})")
+            # Ref: https://docs.python.org/3.7/library/filecmp.html
+            self.assertTrue(filecmp.cmp(f'{self.data_path}/file1.txt', data_file_name, shallow=False), f"Input data file is corrupted! ({data_file_name})")
 
     def test_calc_hash_for_one_small_file_md5(self):
         shutil.copyfile(f'{self.data_path}/file1.txt', f'{self.work_path}/file1.txt')
@@ -205,7 +212,16 @@ class SimpleCommandLineTestCase(unittest.TestCase):
                 line = hash_file.readline()
 
         self.assertTrue(len(user_comments) == 0, f"Some user comments are not stored in output hash file: {' ,'.join(user_comments)}")
+
+
+    def test_non_existent_file_and_folder_error(self):
+        shutil.copyfile(f'{self.data_path}/file1.txt', f'{self.work_path}/file1.txt')
+
+        exit_code = os.system(f'smart_hasher --input-folder {self.work_path}\\fake_folder --suppress-console-reporting-output')
+        self.assertTrue(exit_code == cmd_line.ExitCode.DATA_READ_ERROR , f"Report on non-existent folder expected")
                     
+        exit_code = os.system(f'smart_hasher --input-file {self.work_path}\\file1.txt --input-file {self.work_path}\\fake_file.txt --suppress-console-reporting-output')
+        self.assertTrue(exit_code == cmd_line.ExitCode.DATA_READ_ERROR , f"Report on non-existent file expected")
 
     #@unittest.skip("This is sandbox, actually not unit test")
     def _test_sandbox(self):
@@ -238,7 +254,8 @@ if __name__ == '__main__':
         # Run single test
         # https://docs.python.org/3/library/unittest.html#organizing-test-code
         suite = unittest.TestSuite()
-        suite.addTest(SimpleCommandLineTestCase('test_calc_hash_with_user_comments'))
+        suite.addTest(SimpleCommandLineTestCase('test_calc_hash_for_one_small_file_sha1'))
+        #suite.addTest(SimpleCommandLineTestCase('test_non_existent_file_and_folder_error'))
         runner = unittest.TextTestRunner()
         runner.run(suite)
     else:

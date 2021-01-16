@@ -59,7 +59,7 @@ def pause(pause_duration = 30):
     Ref: https://stackoverflow.com/questions/44834493/a-single-python-loop-from-zero-to-n-to-zero
     """
     for s in range(pause_duration, 0, -1):
-        print(f"Pause {s} seconds... Press ESC to exit program\r", end="")
+        print(f"Pause {s} seconds before continue program execution... Press ESC to exit program\r", end="")
         # Ref: https://www.journaldev.com/15797/python-time-sleep
         time.sleep(1)
         # Ref: https://stackoverflow.com/questions/24072790/detect-key-press-in-python

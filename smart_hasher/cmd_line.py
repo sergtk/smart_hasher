@@ -35,7 +35,7 @@ exit_code_descriptions = {
     ExitCode.OK:                                "everthing fine. Program executed successfully",
     ExitCode.OK_SKIPPED_ALREADY_CALCULATED:     "everything fine. OK may be returned anyway\n     if file(s) is skipped because the hash is already calculated.",
     ExitCode.FAILED:                            "general failure, more specific information is not available.",
-    ExitCode.DATA_READ_ERROR:                   "there was error(s) when reading some file(s). Probably hash is not calculated for all files",
+    ExitCode.DATA_READ_ERROR:                   "there was error(s) when reading some file(s). It is likely that hashes are not calculated for all input files",
     ExitCode.APP_USAGE_ERROR:                   "incorrect usage of the application",
 }
 
