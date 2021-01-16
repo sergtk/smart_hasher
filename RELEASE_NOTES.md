@@ -5,6 +5,7 @@
 ### New in this release
 
 [*] Fix the application crash during daylight time switch (#34)
+
 [+] Error report if user specified incorrect input file(s) or folders (#36)
 
 ## Internal changes
