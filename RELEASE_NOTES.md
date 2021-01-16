@@ -8,6 +8,8 @@
 
 [+] Error report if user specified incorrect input file(s) or folders (#36)
 
+[*] Fix handling when smart_hasher reads hash file with file names which contain parentheses (#35)
+
 ## Internal changes
 
 Stub

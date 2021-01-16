@@ -168,7 +168,7 @@ class SingleFileHashesStorage(HashStorageAbstract):
         comment_pattern = re.compile("\s*(#.*)?\n?")
         # Ref: https://stackoverflow.com/questions/50618116/regex-for-finding-file-paths
         # Ref: https://stackoverflow.com/questions/2758921/regular-expression-that-finds-and-replaces-non-ascii-characters-with-python
-        hash_record_pattern = re.compile("(?P<hash>[0-9A-Fa-f]+)\s+\*(?P<file>[\\\\/\w.: \\-\u0080-\uFFFF]+)\n?")
+        hash_record_pattern = re.compile("(?P<hash>[0-9A-Fa-f]+)\s+\*(?P<file>[\\\\/\w.: \\-\u0080-\uFFFF\)\(]+)\n?")
 
         with open(hash_file_name, "r") as f:
             line = f.readline()
