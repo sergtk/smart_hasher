@@ -28,7 +28,7 @@ class SimpleCommandLineTestCase(unittest.TestCase):
     def test_calc_hash_for_one_small_file_sha1(self):
 
 		# Without and with input folder trailing slash
-        for input_folder_traling in ["", "\\"]:
+        for input_folder_trailing in ["", "\\"]:
 
             tests.util_test.clean_work_dir()
 
@@ -36,7 +36,7 @@ class SimpleCommandLineTestCase(unittest.TestCase):
 
             shutil.copyfile(f'{self.data_path}/file1.txt', data_file_name)
 
-            cmd = f'smart_hasher --input-folder {self.work_path}{input_folder_traling} --suppress-output-file-comments --suppress-console-reporting-output'
+            cmd = f'smart_hasher --input-folder {self.work_path}{input_folder_trailing} --suppress-output-file-comments --suppress-console-reporting-output'
             exit_code = os.system(cmd)
             self.assertEqual(exit_code, cmd_line.ExitCode.OK)
         
@@ -218,10 +218,10 @@ class SimpleCommandLineTestCase(unittest.TestCase):
         shutil.copyfile(f'{self.data_path}/file1.txt', f'{self.work_path}/file1.txt')
 
         exit_code = os.system(f'smart_hasher --input-folder {self.work_path}\\fake_folder --suppress-console-reporting-output')
-        self.assertTrue(exit_code == cmd_line.ExitCode.DATA_READ_ERROR , f"Report on non-existent folder expected")
+        self.assertTrue(exit_code == cmd_line.ExitCode.DATA_READ_ERROR, f"Report on non-existent folder expected")
                     
         exit_code = os.system(f'smart_hasher --input-file {self.work_path}\\file1.txt --input-file {self.work_path}\\fake_file.txt --suppress-console-reporting-output')
-        self.assertTrue(exit_code == cmd_line.ExitCode.DATA_READ_ERROR , f"Report on non-existent file expected")
+        self.assertTrue(exit_code == cmd_line.ExitCode.DATA_READ_ERROR, f"Report on non-existent file expected")
 
     #@unittest.skip("This is sandbox, actually not unit test")
     def _test_sandbox(self):
@@ -254,7 +254,8 @@ if __name__ == '__main__':
         # Run single test
         # https://docs.python.org/3/library/unittest.html#organizing-test-code
         suite = unittest.TestSuite()
-        suite.addTest(SimpleCommandLineTestCase('test_calc_hash_for_one_small_file_sha1'))
+        #suite.addTest(SimpleCommandLineTestCase('test_calc_hash_for_one_small_file_sha1'))
+        suite.addTest(SimpleCommandLineTestCase('test_non_existent_file_and_folder_error'))
         #suite.addTest(SimpleCommandLineTestCase('test_non_existent_file_and_folder_error'))
         runner = unittest.TextTestRunner()
         runner.run(suite)

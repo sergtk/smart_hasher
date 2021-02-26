@@ -218,12 +218,16 @@ def fill_start_time_dict():
 
 try:
     # breakpoint()
+    cmd_line_args = None
 
     if __name__ == '__main__':
-        cmd_line_args = None
         fill_start_time_dict()
 
-        cmd_line_args, parse_res = cmd_line.parse_cmd_line()
+        cmd_line_adapter = cmd_line.CommandLineAdapter()
+        cmd_line_args, parse_res = cmd_line_adapter.run(sys.argv[1:])
+
+        # cmd_line_args, parse_res = cmd_line.parse_cmd_line()
+
         if parse_res != cmd_line.ExitCode.OK:
             exit(int(parse_res))
         if cmd_line_args.single_hash_file_name_base or cmd_line_args.single_hash_file_name_base_json:
@@ -256,6 +260,8 @@ try:
         sys.exit(int(exit_code))
 
 except SystemExit as se:
+    if se.code != 0:
+        print(traceback.format_exc(), file=sys.stderr)
     sys.exit(se.code)
 except util.AppUsageError as aue:
     if cmd_line_args is None or not cmd_line_args.suppress_console_reporting_output:
