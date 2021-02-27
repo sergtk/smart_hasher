@@ -199,8 +199,10 @@ if __name__ == '__main__':
         # Run single test
         # https://docs.python.org/3/library/unittest.html#organizing-test-code
         suite = unittest.TestSuite()
-        suite.addTest(SingleFileHashesStorageTestCase("test_json_hash_storages_load_save"))
+        #suite.addTest(SingleFileHashesStorageTestCase("test_json_hash_storages_load_save"))
         #suite.addTest(SingleFileHashesStorageTestCase("test_hash_storages_load_save"))
+        #suite.addTest(SingleFileHashesStorageTestCase("test_cli_error_on_equal_data_and_hash_file_names"))
+        suite.addTest(SingleFileHashesStorageTestCase("test_cli_simple_hash_storages_abs"))
         runner = unittest.TextTestRunner()
         runner.run(suite)
     else:

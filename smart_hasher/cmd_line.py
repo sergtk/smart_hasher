@@ -1,9 +1,20 @@
 import argparse
 import enum
 import functools
+import util
+import traceback
+import sys
+import math
+import fnmatch
+import time
+import locale
+import ntpath
+import os.path
+from datetime import datetime
 
 import smart_hasher
 import hash_calc
+import hash_storages
 
 @enum.unique
 @functools.total_ordering
@@ -45,6 +56,28 @@ class CommandLineAdapter(object):
     def __init__(self):
         self._input_args = None # This should be specified by caller
         self._parser = None
+        self._cmd_line_args = None
+
+    def _fill_start_time_dict(self):
+        """
+        Save time in different formats at the start of the program run
+    
+        Ref: https://www.programiz.com/python-programming/datetime/strftime
+        """
+        self._start_time_dict = {"datetime": datetime.now()}
+        self._start_time_dict["file_postfix"] = self._start_time_dict["datetime"].strftime("%Y-%m-%d_%H-%M-%S")
+
+        tz_offset = time.localtime().tm_gmtoff
+        tz_hours = abs(tz_offset) // 60 // 60
+        tz_minutes = abs(tz_offset) // 60 % 60
+        if tz_offset < 0:
+            tz_sign = "-"
+        else:
+            tz_sign = "+"
+        tz_str = f"UTC{tz_sign}{tz_hours:02d}:{tz_minutes:02d}";
+
+        # Ref: https://howchoo.com/g/ywi5m2vkodk/working-with-datetime-objects-and-timezones-in-python
+        self._start_time_dict["str"] = self._start_time_dict["datetime"].strftime("%Y-%m-%d %H:%M:%S") + f" {tz_str}";
 
     def _configure_parser(self):
         """    
@@ -109,7 +142,6 @@ class CommandLineAdapter(object):
                                   "This is essential when multiple hashes stored in one file.")
         self._parser.add_argument('--user-comment', '-uc', action="append", help="Specify comment which will be added to output hash file")
 
-
     def _postprocess_parsed_args(self):
         if (not self._cmd_line_args.input_file and not self._cmd_line_args.input_folder):
             self._parser.error("One or more input files and/or folders should be specified")
@@ -134,18 +166,243 @@ class CommandLineAdapter(object):
                 self._parser.error("--single-hash-file-name-base-json should be either specified once or not specified")
             self._cmd_line_args.single_hash_file_name_base_json = self._cmd_line_args.single_hash_file_name_base_json[0]
 
+    def _get_hash_file_name_postfix(self):
+
+        postfix = ""
+
+        if not self._cmd_line_args.suppress_hash_file_name_postfix:
+            postfix += "." + self._cmd_line_args.hash_algo
+            if self._cmd_line_args.single_hash_file_name_base_json:
+                postfix += ".json"
+
+        if self._cmd_line_args.add_output_file_name_timestamp:
+            postfix += "." + self._start_time_dict["file_postfix"]
+
+        if self._cmd_line_args.hash_file_name_output_postfix:
+            postfix += "." + self._cmd_line_args.hash_file_name_output_postfix[0]
+
+        return postfix
+
+    def _get_date_time_str(self, dateTime: datetime) -> str:
+        return dateTime.strftime("%Y.%m.%d %H:%M:%S")
+
+    def _handle_input_file(self, hash_storage: hash_storages.HashStorageAbstract, input_file_name):
+        """
+        Handle single input file input_file_name
+        """
+        if not isinstance(hash_storage, hash_storages.HashStorageAbstract):
+            raise TypeError(f"HashStorageAbstract expected, {type(hash_storage)} found")
+
+        start_date_time = datetime.now();
+        if not self._cmd_line_args.suppress_console_reporting_output:
+            print("Handle file start time: " + self._get_date_time_str(start_date_time) + " (" + input_file_name + ")")
+
+        # Ref: https://stackoverflow.com/questions/82831/how-do-i-check-whether-a-file-exists-without-exceptions
+        if (not self._cmd_line_args.force_calc_hash and hash_storage.has_hash(input_file_name)):
+            if not self._cmd_line_args.suppress_console_reporting_output:
+                print("Hash for file '" + input_file_name + "' exists ... calculation of hash skipped.\n")
+            return ExitCode.OK_SKIPPED_ALREADY_CALCULATED
+        if not self._cmd_line_args.suppress_console_reporting_output:
+            print("Calculate hash for file '" + input_file_name + "'...")
+
+        calc = hash_calc.FileHashCalc()
+        calc.file_name = input_file_name
+        calc.hash_str = self._cmd_line_args.hash_algo
+        calc.suppress_console_reporting_output = self._cmd_line_args.suppress_console_reporting_output
+        calc.retry_count_on_data_read_error = self._cmd_line_args.retry_count_on_data_read_error;
+        calc.retry_pause_on_data_read_error = self._cmd_line_args.retry_pause_on_data_read_error;
+
+        calc_res = calc.run()
+        if calc_res != hash_calc.FileHashCalc.ReturnCode.OK:
+            if calc_res == hash_calc.FileHashCalc.ReturnCode.PROGRAM_INTERRUPTED_BY_USER:
+                return ExitCode.PROGRAM_INTERRUPTED_BY_USER
+            elif calc_res == hash_calc.FileHashCalc.ReturnCode.DATA_READ_ERROR:
+                return ExitCode.DATA_READ_ERROR
+            else:
+                raise Exception(f"Error on calculation of the hash: {calc_res}")
+        hash = calc.result
+
+        hash_storage.set_hash(input_file_name, hash)
+
+        output_file_name = hash_storage.get_hash_file_name(input_file_name)
+        if not self._cmd_line_args.suppress_console_reporting_output:
+            print("HASH: ", hash, "(storage in file '" + output_file_name + "')")
+
+        end_date_time = datetime.now();
+        if not self._cmd_line_args.suppress_console_reporting_output:
+            print("Handle file end time: " + self._get_date_time_str(end_date_time) + " (" + input_file_name + ")")
+        seconds = int((end_date_time - start_date_time).total_seconds());
+        # print("Elapsed time: {0}:{1:02d}:{2:02d}".format(int(seconds / 60 / 60), int(seconds / 60) % 60, seconds % 60))
+
+        file_size = os.path.getsize(input_file_name)
+        speed = file_size / seconds if seconds > 0 else 0
+        if not self._cmd_line_args.suppress_console_reporting_output:
+            print("Elapsed time: {0} (Average speed: {1}/sec)\n".format(util.format_seconds(seconds), util.convert_size_to_display(speed)))
+     
+        if (self._cmd_line_args.pause_after_file is not None):
+            if not util.pause(self._cmd_line_args.pause_after_file):
+                # Return specific error code
+                return ExitCode.PROGRAM_INTERRUPTED_BY_USER
+
+        return ExitCode.OK
+
+    def _file_masks_included(self, file_name):
+        """
+        Ref: "Extract file name from path, no matter what the os/path format" https://stackoverflow.com/a/8384788/13441
+        """
+        base_name = ntpath.basename(file_name)
+
+        # Ref: https://docs.python.org/2/library/fnmatch.html
+        # if fnmatch.fnmatch(base_name, '*.txt'):
+
+        if (self._cmd_line_args.input_folder_file_mask_include):
+            file_included = False
+            include_masks = self._cmd_line_args.input_folder_file_mask_include.split(";")
+            for include_mask in include_masks:
+                if fnmatch.fnmatch(file_name, include_mask):
+                    file_included = True
+                    break
+            if not file_included:
+                return False;
+
+        if (self._cmd_line_args.input_folder_file_mask_exclude):
+            exclude_masks = self._cmd_line_args.input_folder_file_mask_exclude.split(";")
+            for exclude_mask in exclude_masks:
+                if fnmatch.fnmatch(file_name, exclude_mask):
+                    return False;
+        return True;
+
+    def _handle_input_files(self, hash_storage: hash_storages.HashStorageAbstract):
+        """
+        Handle input files according to the parameters from user
+        """
+
+        if not isinstance(hash_storage, hash_storages.HashStorageAbstract):
+            raise TypeError(f"HashStorageAbstract expected, {type(hash_storage)} found")
+
+        header_comments = [
+            f"File generated by Smart Hasher (https://github.com/sergtk/smart_hasher)",
+            f"Timestamp of hash calculation: {self._start_time_dict['str']}",
+            f"Hash algorithm: {self._cmd_line_args.hash_algo}"]
+        if self._cmd_line_args.user_comment:
+            header_comments = header_comments + [f"User comment: {cmt}" for cmt in self._cmd_line_args.user_comment]
+        hash_storage.hash_file_header_comments = header_comments
+
+        hash_storage.suppress_hash_file_comments = self._cmd_line_args.suppress_output_file_comments
+
+        input_file_names = []
+
+        if (self._cmd_line_args.input_file):
+            for input_file_name in self._cmd_line_args.input_file:
+                if not os.path.isfile(input_file_name):
+                    if not self._cmd_line_args.suppress_console_reporting_output:
+                        print(f"Input file does not exist: {input_file_name}")
+                    return ExitCode.DATA_READ_ERROR
+                input_file_names.append(input_file_name)
+
+        if (self._cmd_line_args.input_folder):
+            # Ref: https://docs.python.org/3/library/os.html#os.walk
+            # Ref: https://www.pythoncentral.io/how-to-traverse-a-directory-tree-in-python-guide-to-os-walk/
+            for input_folder in self._cmd_line_args.input_folder:
+                if not os.path.isdir(input_folder):
+                    if not self._cmd_line_args.suppress_console_reporting_output:
+                        print(f"Input folder does not exist: {input_folder}")
+                    return ExitCode.DATA_READ_ERROR
+                for dir_name, subdir_list, file_list in os.walk(input_folder):
+                    for base_file_name in file_list:
+                        input_file_name = os.path.join(dir_name, base_file_name)
+                        if not self._file_masks_included(input_file_name):
+                            continue
+                        # print("{0} -> {1}".format(dir_name, base_file_name));
+                        input_file_names.append(input_file_name)
+
+        # remove duplicates
+        # Ref: https://www.w3schools.com/python/python_howto_remove_duplicates.asp
+        input_file_names = list(dict.fromkeys(input_file_names))
+    
+        # Sort accounting unicode
+        key1 = lambda v: (locale.strxfrm(v).casefold(), locale.strxfrm(v))
+        input_file_names.sort(key=key1)
+
+        data_read_error = False
+
+        file_count = len(input_file_names)
+        for fi in range(0, file_count):
+            if not self._cmd_line_args.suppress_console_reporting_output:
+                print("File {0} of {1}".format(fi + 1, file_count))
+
+            input_file_name = input_file_names[fi]
+            h = self._handle_input_file(hash_storage, input_file_name)
+
+            if h == ExitCode.DATA_READ_ERROR:
+                data_read_error = True
+            elif h >= ExitCode.FAILED:
+                return h
+
+        if data_read_error:
+            return ExitCode.DATA_READ_ERROR
+        return ExitCode.OK
+
+    def _handle_input(self):
+        if self._cmd_line_args.single_hash_file_name_base or self._cmd_line_args.single_hash_file_name_base_json:
+            hash_storage = hash_storages.SingleFileHashesStorage()
+            
+            if self._cmd_line_args.single_hash_file_name_base:
+                hash_storage.single_hash_file_name_base = self._cmd_line_args.single_hash_file_name_base
+            else:
+                assert self._cmd_line_args.single_hash_file_name_base_json
+                hash_storage.single_hash_file_name_base = self._cmd_line_args.single_hash_file_name_base_json
+                hash_storage.json_format = True
+
+            hash_storage.preserve_unused_hash_records = self._cmd_line_args.preserve_unused_hash_records
+            hash_storage.sort_by_hash_value = self._cmd_line_args.sort_by_hash_value
+        else:
+            hash_storage = hash_storages.HashPerFileStorage()
+
+        hash_storage.hash_file_name_postfix = self._get_hash_file_name_postfix()
+        hash_storage.use_absolute_file_names = self._cmd_line_args.use_absolute_file_names
+        hash_storage.norm_case_file_names = self._cmd_line_args.norm_case_file_names
+        hash_storage.autosave_timeout = self._cmd_line_args.autosave_timeout
+
+        hash_storage.load_hashes_info()
+        exit_code = self._handle_input_files(hash_storage)
+        hash_storage.save_hashes_info() # Note, hash info is not stored on exception, because it is not clear if we can trust to that data
+
+        if not self._cmd_line_args.suppress_console_reporting_output:
+            # Ref: https://stackoverflow.com/questions/24487405/enum-getting-value-of-enum-on-string-conversion
+            print(f"ExitCode: {exit_code.name} ({exit_code})")
+
+        #sys.exit(int(exit_code))
+        return (None, exit_code)
+
     def run(self, input_args):
         try:
+            self._fill_start_time_dict()
             self._input_args = input_args
             self._configure_parser()
             # Ref: https://stackoverflow.com/questions/23032514/argparse-disable-same-argument-occurrences
             self._cmd_line_args = self._parser.parse_args(self._input_args)
             self._postprocess_parsed_args()
+            ret = self._handle_input()
+            return ret
         except SystemExit as se:
             # Check if error is related to invalid command line parameters
             # Ref: https://docs.python.org/3/library/argparse.html#argparse.ArgumentParser.error
             if se.code == 2:
                 return (None, ExitCode.INVALID_COMMAND_LINE_PARAMETERS)
-            raise se
-        return (self._cmd_line_args, ExitCode.OK)
+            return (None, se.code)
+        except util.AppUsageError as aue:
+            if self._cmd_line_args is None or not self._cmd_line_args.suppress_console_reporting_output:
+                print(f"\nIncorrect usage of the application: {aue.args[0]}", file=sys.stderr)
+            return (None, int(ExitCode.APP_USAGE_ERROR))
+        except BaseException as ex:
+            # Ref: https://stackoverflow.com/a/4564595/13441
+            # Wierd that `ex` is not used
+            if self._cmd_line_args is None or not self._cmd_line_args.suppress_console_reporting_output:
+                print(traceback.format_exc(), file=sys.stderr)
 
+            # Short message
+            # print("Exception thrown:\n", ex)
+            return (None, int(ExitCode.EXCEPTION_THROWN_ON_PROGRAM_EXECUTION))
+
+        return (self._cmd_line_args, ExitCode.OK)

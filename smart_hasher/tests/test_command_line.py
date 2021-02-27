@@ -55,8 +55,9 @@ class SimpleCommandLineTestCase(unittest.TestCase):
     def test_calc_hash_for_one_small_file_md5(self):
         shutil.copyfile(f'{self.data_path}/file1.txt', f'{self.work_path}/file1.txt')
 
-        os.system(f'smart_hasher --input-folder {self.work_path} --hash-algo md5 --suppress-console-reporting-output --suppress-output-file-comments')
-        
+        exit_code = os.system(f'smart_hasher --input-folder {self.work_path} --hash-algo md5 --suppress-console-reporting-output --suppress-output-file-comments')
+        self.assertEqual(exit_code, cmd_line.ExitCode.OK)
+
         with open(f'{self.data_path}/file1.txt.md5', mode='r') as md5_expected_file:
             md5_expected = md5_expected_file.read()
 
@@ -255,8 +256,8 @@ if __name__ == '__main__':
         # https://docs.python.org/3/library/unittest.html#organizing-test-code
         suite = unittest.TestSuite()
         #suite.addTest(SimpleCommandLineTestCase('test_calc_hash_for_one_small_file_sha1'))
-        suite.addTest(SimpleCommandLineTestCase('test_non_existent_file_and_folder_error'))
         #suite.addTest(SimpleCommandLineTestCase('test_non_existent_file_and_folder_error'))
+        suite.addTest(SimpleCommandLineTestCase('test_calc_hash_for_one_small_file_md5'))
         runner = unittest.TextTestRunner()
         runner.run(suite)
     else:
