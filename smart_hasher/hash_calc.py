@@ -5,6 +5,7 @@ import util
 import enum
 import time
 import random
+import sys
 
 class FileHashCalc(object):
     """This is a class to calculate hash for one file"""
