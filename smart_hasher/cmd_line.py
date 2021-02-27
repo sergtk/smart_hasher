@@ -12,6 +12,7 @@ import ntpath
 import os.path
 from datetime import datetime
 import shlex
+import platform
 
 import smart_hasher
 import hash_calc
@@ -79,6 +80,11 @@ class CommandLineAdapter(object):
 
         # Ref: https://howchoo.com/g/ywi5m2vkodk/working-with-datetime-objects-and-timezones-in-python
         self._start_time_dict["str"] = self._start_time_dict["datetime"].strftime("%Y-%m-%d %H:%M:%S") + f" {tz_str}";
+
+    def _info(self, *objects, sep=' ', end='\n', file=sys.stdout, flush=False):
+        if self._cmd_line_args is not None and self._cmd_line_args.suppress_console_reporting_output:
+            return
+        print(*objects, sep=sep, end=end, file=file, flush=flush)
 
     def _configure_parser(self):
         """    
@@ -195,16 +201,13 @@ class CommandLineAdapter(object):
             raise TypeError(f"HashStorageAbstract expected, {type(hash_storage)} found")
 
         start_date_time = datetime.now();
-        if not self._cmd_line_args.suppress_console_reporting_output:
-            print("Handle file start time: " + self._get_date_time_str(start_date_time) + " (" + input_file_name + ")")
+        self._info("Handle file start time: " + self._get_date_time_str(start_date_time) + " (" + input_file_name + ")")
 
         # Ref: https://stackoverflow.com/questions/82831/how-do-i-check-whether-a-file-exists-without-exceptions
-        if (not self._cmd_line_args.force_calc_hash and hash_storage.has_hash(input_file_name)):
-            if not self._cmd_line_args.suppress_console_reporting_output:
-                print("Hash for file '" + input_file_name + "' exists ... calculation of hash skipped.\n")
+        if not self._cmd_line_args.force_calc_hash and hash_storage.has_hash(input_file_name):
+            self._info("Hash for file '" + input_file_name + "' exists ... calculation of hash skipped.\n")
             return ExitCode.OK_SKIPPED_ALREADY_CALCULATED
-        if not self._cmd_line_args.suppress_console_reporting_output:
-            print("Calculate hash for file '" + input_file_name + "'...")
+        self._info("Calculate hash for file '" + input_file_name + "'...")
 
         calc = hash_calc.FileHashCalc()
         calc.file_name = input_file_name
@@ -226,19 +229,16 @@ class CommandLineAdapter(object):
         hash_storage.set_hash(input_file_name, hash)
 
         output_file_name = hash_storage.get_hash_file_name(input_file_name)
-        if not self._cmd_line_args.suppress_console_reporting_output:
-            print("HASH: ", hash, "(storage in file '" + output_file_name + "')")
+        self._info("HASH:", hash, "(storage in file '" + output_file_name + "')")
 
         end_date_time = datetime.now();
-        if not self._cmd_line_args.suppress_console_reporting_output:
-            print("Handle file end time: " + self._get_date_time_str(end_date_time) + " (" + input_file_name + ")")
+        self._info("Handle file end time: " + self._get_date_time_str(end_date_time) + " (" + input_file_name + ")")
         seconds = int((end_date_time - start_date_time).total_seconds());
         # print("Elapsed time: {0}:{1:02d}:{2:02d}".format(int(seconds / 60 / 60), int(seconds / 60) % 60, seconds % 60))
 
         file_size = os.path.getsize(input_file_name)
         speed = file_size / seconds if seconds > 0 else 0
-        if not self._cmd_line_args.suppress_console_reporting_output:
-            print("Elapsed time: {0} (Average speed: {1}/sec)\n".format(util.format_seconds(seconds), util.convert_size_to_display(speed)))
+        self._info("Elapsed time: {0} (Average speed: {1}/sec)\n".format(util.format_seconds(seconds), util.convert_size_to_display(speed)))
      
         if (self._cmd_line_args.pause_after_file is not None):
             if not util.pause(self._cmd_line_args.pause_after_file):
@@ -296,8 +296,7 @@ class CommandLineAdapter(object):
         if (self._cmd_line_args.input_file):
             for input_file_name in self._cmd_line_args.input_file:
                 if not os.path.isfile(input_file_name):
-                    if not self._cmd_line_args.suppress_console_reporting_output:
-                        print(f"Input file does not exist: {input_file_name}")
+                    self._info(f"Input file does not exist: {input_file_name}")
                     return ExitCode.DATA_READ_ERROR
                 input_file_names.append(input_file_name)
 
@@ -306,8 +305,7 @@ class CommandLineAdapter(object):
             # Ref: https://www.pythoncentral.io/how-to-traverse-a-directory-tree-in-python-guide-to-os-walk/
             for input_folder in self._cmd_line_args.input_folder:
                 if not os.path.isdir(input_folder):
-                    if not self._cmd_line_args.suppress_console_reporting_output:
-                        print(f"Input folder does not exist: {input_folder}")
+                    self._info(f"Input folder does not exist: {input_folder}")
                     return ExitCode.DATA_READ_ERROR
                 for dir_name, subdir_list, file_list in os.walk(input_folder):
                     for base_file_name in file_list:
@@ -329,8 +327,7 @@ class CommandLineAdapter(object):
 
         file_count = len(input_file_names)
         for fi in range(0, file_count):
-            if not self._cmd_line_args.suppress_console_reporting_output:
-                print("File {0} of {1}".format(fi + 1, file_count))
+            self._info(f"File {fi + 1} of {file_count}")
 
             input_file_name = input_file_names[fi]
             h = self._handle_input_file(hash_storage, input_file_name)
@@ -369,9 +366,8 @@ class CommandLineAdapter(object):
         exit_code = self._handle_input_files(hash_storage)
         hash_storage.save_hashes_info() # Note, hash info is not stored on exception, because it is not clear if we can trust to that data
 
-        if not self._cmd_line_args.suppress_console_reporting_output:
-            # Ref: https://stackoverflow.com/questions/24487405/enum-getting-value-of-enum-on-string-conversion
-            print(f"ExitCode: {exit_code.name} ({exit_code})")
+        # Ref: https://stackoverflow.com/questions/24487405/enum-getting-value-of-enum-on-string-conversion
+        self._info(f"ExitCode: {exit_code.name} ({exit_code})")
 
         return exit_code
 
@@ -392,14 +388,12 @@ class CommandLineAdapter(object):
                 return ExitCode.INVALID_COMMAND_LINE_PARAMETERS
             return se.code
         except util.AppUsageError as aue:
-            if self._cmd_line_args is None or not self._cmd_line_args.suppress_console_reporting_output:
-                print(f"\nIncorrect usage of the application: {aue.args[0]}", file=sys.stderr)
+            self._info(f"\nIncorrect usage of the application: {aue.args[0]}", file=sys.stderr)
             return ExitCode.APP_USAGE_ERROR
         except BaseException as ex:
             # Ref: https://stackoverflow.com/a/4564595/13441
             # Wierd that `ex` is not used
-            if self._cmd_line_args is None or not self._cmd_line_args.suppress_console_reporting_output:
-                print(traceback.format_exc(), file=sys.stderr)
+            self._info(traceback.format_exc(), file=sys.stderr)
 
             # Short message
             # print("Exception thrown:\n", ex)
@@ -410,7 +404,9 @@ class CommandLineAdapter(object):
     # `cmd_line` is the str, which contains CLI parameters without script itself.
     # This function is primarily for testing
     def run_cmd_line(self, cmd_line):
-        cmd_line = cmd_line.replace("\\", "\\\\")
+        # Ref: https://stackoverflow.com/questions/19719971/why-do-i-need-4-backslashes-in-a-python-path
+        if platform.platform().startswith('Windows'):
+            cmd_line = cmd_line.replace(os.sep, os.sep + os.sep)
         # Ref: https://stackoverflow.com/questions/899276/how-to-parse-strings-to-look-like-sys-argv
         input_args = shlex.split(cmd_line)
         ret = self.run(input_args)

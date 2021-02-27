@@ -37,10 +37,10 @@ class FileHashCalc(object):
         PROGRAM_INTERRUPTED_BY_USER = 8
         DATA_READ_ERROR = 9 # Error when reading data from file. This may be caused by network issues, and retrying does not help
 
-    def _print(self, str="", end="\n"):
-        if (self.suppress_console_reporting_output):
+    def _info(self, *objects, sep=' ', end='\n', file=sys.stdout, flush=False):
+        if self.suppress_console_reporting_output:
             return
-        print(str, end=end)
+        print(*objects, sep=sep, end=end, file=file, flush=flush)
 
     def _run_single(self):
         """
@@ -116,9 +116,9 @@ class FileHashCalc(object):
                     if con_report_len_new < con_report_len:
                         con_report += " " * (con_report_len - con_report_len_new)
                     con_report_len = con_report_len_new
-                    self._print(f"{con_report}\r", end="")
+                    self._info(f"{con_report}\r", end="")
                     prev_percent = percent
-        self._print(" " * con_report_len + "\r", end="") # Clear line
+        self._info(" " * con_report_len + "\r", end="") # Clear line
         self.result = hasher.hexdigest()
         return self.ReturnCode.OK
 
@@ -133,12 +133,12 @@ class FileHashCalc(object):
                 res = self._run_single()
                 return res
             except OSError as err:
-                self._print()
-                self._print(f"OS Error. {type(err)}: {err.strerror} (errno = {err.errno}, filename = {err.filename})")
+                self._info()
+                self._info(f"OS Error. {type(err)}: {err.strerror} (errno = {err.errno}, filename = {err.filename})")
                 if (not util.pause(self.retry_pause_on_data_read_error)):
                     return self.ReturnCode.PROGRAM_INTERRUPTED_BY_USER
                 if cur_try < self.retry_count_on_data_read_error:
-                    self._print(f"Retry {cur_try + 1} of {self.retry_count_on_data_read_error}")
+                    self._info(f"Retry {cur_try + 1} of {self.retry_count_on_data_read_error}")
                 else:
-                    self._print(f"Skip file. The hash for it can't be calculated due to the errors.\n")
+                    self._info(f"Skip file. The hash for it can't be calculated due to the errors.\n")
                     return self.ReturnCode.DATA_READ_ERROR
