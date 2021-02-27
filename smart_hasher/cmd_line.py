@@ -107,19 +107,19 @@ class CommandLineAdapter(object):
 
         # Ref: https://www.programcreek.com/python/example/6706/argparse.RawDescriptionHelpFormatter
         self._parser = argparse.ArgumentParser(description=description, formatter_class=argparse.RawDescriptionHelpFormatter)
-        self._parser.add_argument('--input-file', '-if', action="append", help="Specify input files. Key can be specified multiple times")
-        self._parser.add_argument('--input-folder', '-ifo', action="append", help="Specify input folders. All files in folder are handled recursively. Key can be specified multiple times")
-        self._parser.add_argument('--input-folder-file-mask-include', '-ifoi', help="Specify file mask to include for input folder. All files in the folder considered if not specified. Separate multiple masks with semicolon (;)")
-        self._parser.add_argument('--input-folder-file-mask-exclude', '-ifoe', help="Specify file mask to exclude for input folder. It is applied after --input-folder-file-mask-include. Separate multiple masks with semicolon (;)")
-        self._parser.add_argument('--hash-file-name-output-postfix', '-op', action='append',
+        self._parser.add_argument('--input-file', '-i', action="append", help="Specify input files. Key can be specified multiple times")
+        self._parser.add_argument('--input-folder', action="append", help="Specify input folders. All files in folder are handled recursively. Key can be specified multiple times")
+        self._parser.add_argument('--input-folder-file-mask-include', help="Specify file mask to include for input folder. All files in the folder considered if not specified. Separate multiple masks with semicolon (;)")
+        self._parser.add_argument('--input-folder-file-mask-exclude', help="Specify file mask to exclude for input folder. It is applied after --input-folder-file-mask-include. Separate multiple masks with semicolon (;)")
+        self._parser.add_argument('--hash-file-name-output-postfix', action='append',
                             help="Specify postfix, which will be appended to the end of output file names. This is to specify for different contextes, "
                             "e.g. if file name ends with \".md5\", then it ends with \"md5.<value>\"")
         self._parser.add_argument('--hash-algo', help=f"Specify hash algo (default: {hash_calc.FileHashCalc.hash_algo_default_str})", default=hash_calc.FileHashCalc.hash_algo_default_str, choices=hash_calc.FileHashCalc.hash_algos)
-        self._parser.add_argument('--suppress-console-reporting-output', '-so', help="Suppress console output with progress reporting", action="store_true")
-        self._parser.add_argument('--pause-after-file', '-pf', help="Specify pause after every file handled, in seconds. Note, if file is skipped, then no pause applied", type=int)
+        self._parser.add_argument('--suppress-console-reporting-output', '-s', help="Suppress console output with progress reporting", action="store_true")
+        self._parser.add_argument('--pause-after-file', '-p', help="Specify pause after every file handled, in seconds. Note, if file is skipped, then no pause applied", type=int)
         self._parser.add_argument('--retry-count-on-data-read-error', help=f"Specify count of retries on data read error (default: {calc.retry_count_on_data_read_error})", default=calc.retry_count_on_data_read_error, type=int)
         self._parser.add_argument('--retry-pause-on-data-read-error', help=f"Specify pause before retrying on data read error, in seconds (default: {calc.retry_pause_on_data_read_error})", default=calc.retry_pause_on_data_read_error, type=int)
-        self._parser.add_argument('--force-calc-hash', '-fch', help="If specified than hash calculated always. If not, then hash is not calculated if file with hash already exist", action="store_true")
+        self._parser.add_argument('--force-calc-hash', help="If specified than hash calculated always. If not, then hash is not calculated if file with hash already exist", action="store_true")
         self._parser.add_argument('--add-output-file-name-timestamp', action="store_true",
                                   help="Add timestamp to the output file names. Note, that the time on program run taken. So it may differ from the file creation time, "
                                   "but it is equal for all files in one run")
@@ -141,7 +141,7 @@ class CommandLineAdapter(object):
                                   "Specify 0 to save hash info after handling every file, this may result in large overhead when many files on input. "
                                   "Specify -1 to disable autosave, this may result the accumulated hash data missed if execution interrupts unexpectedly. "
                                   "This is essential when multiple hashes stored in one file.")
-        self._parser.add_argument('--user-comment', '-uc', action="append", help="Specify comment which will be added to output hash file")
+        self._parser.add_argument('--user-comment', '-u', action="append", help="Specify comment which will be added to output hash file")
 
     def _postprocess_parsed_args(self):
         if (not self._cmd_line_args.input_file and not self._cmd_line_args.input_folder):
