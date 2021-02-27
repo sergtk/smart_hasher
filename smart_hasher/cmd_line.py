@@ -11,6 +11,7 @@ import locale
 import ntpath
 import os.path
 from datetime import datetime
+import shlex
 
 import smart_hasher
 import hash_calc
@@ -263,14 +264,14 @@ class CommandLineAdapter(object):
                     file_included = True
                     break
             if not file_included:
-                return False;
+                return False
 
         if (self._cmd_line_args.input_folder_file_mask_exclude):
             exclude_masks = self._cmd_line_args.input_folder_file_mask_exclude.split(";")
             for exclude_mask in exclude_masks:
                 if fnmatch.fnmatch(file_name, exclude_mask):
-                    return False;
-        return True;
+                    return False
+        return True
 
     def _handle_input_files(self, hash_storage: hash_storages.HashStorageAbstract):
         """
@@ -372,8 +373,7 @@ class CommandLineAdapter(object):
             # Ref: https://stackoverflow.com/questions/24487405/enum-getting-value-of-enum-on-string-conversion
             print(f"ExitCode: {exit_code.name} ({exit_code})")
 
-        #sys.exit(int(exit_code))
-        return (None, exit_code)
+        return exit_code
 
     def run(self, input_args):
         try:
@@ -389,12 +389,12 @@ class CommandLineAdapter(object):
             # Check if error is related to invalid command line parameters
             # Ref: https://docs.python.org/3/library/argparse.html#argparse.ArgumentParser.error
             if se.code == 2:
-                return (None, ExitCode.INVALID_COMMAND_LINE_PARAMETERS)
-            return (None, se.code)
+                return ExitCode.INVALID_COMMAND_LINE_PARAMETERS
+            return se.code
         except util.AppUsageError as aue:
             if self._cmd_line_args is None or not self._cmd_line_args.suppress_console_reporting_output:
                 print(f"\nIncorrect usage of the application: {aue.args[0]}", file=sys.stderr)
-            return (None, int(ExitCode.APP_USAGE_ERROR))
+            return ExitCode.APP_USAGE_ERROR
         except BaseException as ex:
             # Ref: https://stackoverflow.com/a/4564595/13441
             # Wierd that `ex` is not used
@@ -403,6 +403,15 @@ class CommandLineAdapter(object):
 
             # Short message
             # print("Exception thrown:\n", ex)
-            return (None, int(ExitCode.EXCEPTION_THROWN_ON_PROGRAM_EXECUTION))
+            return ExitCode.EXCEPTION_THROWN_ON_PROGRAM_EXECUTION
 
-        return (self._cmd_line_args, ExitCode.OK)
+        return ExitCode.OK
+
+    # `cmd_line` is the str, which contains CLI parameters without script itself.
+    # This function is primarily for testing
+    def run_cmd_line(self, cmd_line):
+        cmd_line = cmd_line.replace("\\", "\\\\")
+        # Ref: https://stackoverflow.com/questions/899276/how-to-parse-strings-to-look-like-sys-argv
+        input_args = shlex.split(cmd_line)
+        ret = self.run(input_args)
+        return ret

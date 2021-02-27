@@ -55,12 +55,14 @@ class SingleFileHashesStorageTestCase(unittest.TestCase):
             work_hash_storage_file = os.path.join(self.work_path, hash_storage_file)
             shutil.copyfile(data_hash_storage_file, work_hash_storage_file)
 
-            cl = f"smart_hasher --input-folder {self.work_path} --input-folder-file-mask-exclude * --suppress-output-file-comments --suppress-console-reporting-output " \
+            cl = f"--input-folder {self.work_path} --input-folder-file-mask-exclude * --suppress-output-file-comments --suppress-console-reporting-output " \
                  f"--single-hash-file-name-base {work_hash_storage_file} --suppress-hash-file-name-postfix " \
                  f"--preserve-unused-hash-records"
 
             # Run command which does not handle any files
-            exit_code = os.system(cl)
+            cmd_line_adapter = cmd_line.CommandLineAdapter()
+            exit_code = cmd_line_adapter.run_cmd_line(cl)
+
             # --suppress-console-reporting-output
             self.assertEqual(exit_code, cmd_line.ExitCode.OK)
 
@@ -74,12 +76,13 @@ class SingleFileHashesStorageTestCase(unittest.TestCase):
         work_hash_storage_file = os.path.join(self.work_path, hash_storage_file)
         shutil.copyfile(data_hash_storage_file, work_hash_storage_file)
 
-        cl = f"smart_hasher --input-folder {self.work_path} --input-folder-file-mask-exclude * --suppress-output-file-comments --suppress-console-reporting-output " \
+        cl = f"--input-folder {self.work_path} --input-folder-file-mask-exclude * --suppress-output-file-comments --suppress-console-reporting-output " \
              f"--single-hash-file-name-base {work_hash_storage_file} --suppress-hash-file-name-postfix --use-absolute-file-names " \
              f"--preserve-unused-hash-records"
 
         # Run command which does not handle any files
-        exit_code = os.system(cl)
+        cmd_line_adapter = cmd_line.CommandLineAdapter()
+        exit_code = cmd_line_adapter.run_cmd_line(cl)
         # --suppress-console-reporting-output
         self.assertEqual(exit_code, cmd_line.ExitCode.OK)
 
@@ -95,11 +98,13 @@ class SingleFileHashesStorageTestCase(unittest.TestCase):
             work_hash_storage_file = os.path.join(self.work_path, hash_storage_file)
             shutil.copyfile(data_hash_storage_file, work_hash_storage_file)
 
-            cl = f"smart_hasher --input-folder {self.work_path} --input-folder-file-mask-exclude * --suppress-console-reporting-output " \
-                        f"--single-hash-file-name-base {work_hash_storage_file} --suppress-hash-file-name-postfix --use-absolute-file-names"
+            cl = f"--input-folder {self.work_path} --input-folder-file-mask-exclude * --suppress-console-reporting-output " \
+                 f"--single-hash-file-name-base {work_hash_storage_file} --suppress-hash-file-name-postfix --use-absolute-file-names"
 
             # Run command which does not handle any files
-            exit_code = os.system(cl)
+            cmd_line_adapter = cmd_line.CommandLineAdapter()
+            exit_code = cmd_line_adapter.run_cmd_line(cl)
+
             self.assertEqual(exit_code, cmd_line.ExitCode.APP_USAGE_ERROR)
             self.assertTrue(filecmp.cmp(work_hash_storage_file, data_hash_storage_file, shallow=False), f"Invalid input hash file is corrupted (file '{work_hash_storage_file}')")
 
@@ -116,13 +121,15 @@ class SingleFileHashesStorageTestCase(unittest.TestCase):
             shutil.copyfile(data_hash_storage_file, work_hash_storage_file)
 
             # cmd_line = f"smart_hasher --input-file {work_hash_storage_file} --single-hash-file-name-base {work_hash_storage_file} --suppress-hash-file-name-postfix " \
-            cl = f"smart_hasher --input-file {work_hash_storage_file} --suppress-hash-file-name-postfix" \
-                        " --suppress-console-reporting-output"
+            cl = f"--input-file {work_hash_storage_file} --suppress-hash-file-name-postfix" \
+                  " --suppress-console-reporting-output"
             if single_hash_file:
                 cl += f" --single-hash-file-name-base {work_hash_storage_file}"
 
             # Run command which does not handle any files
-            exit_code = os.system(cl)
+            cmd_line_adapter = cmd_line.CommandLineAdapter()
+            exit_code = cmd_line_adapter.run_cmd_line(cl)
+
             # --suppress-console-reporting-output
             self.assertEqual(exit_code, cmd_line.ExitCode.APP_USAGE_ERROR)
             self.assertTrue(filecmp.cmp(work_hash_storage_file, data_hash_storage_file, shallow=False), f"Input hash file is corrupted (file '{work_hash_storage_file}')")
@@ -135,22 +142,30 @@ class SingleFileHashesStorageTestCase(unittest.TestCase):
         data_hash_storage_file_123 = f"{self.data_path}/hash_storage_123.sha1"
         data_hash_storage_file_24 = f"{self.data_path}/hash_storage_24.sha1"
 
-        exit_code = os.system(f"smart_hasher --input-folder {self.work_path} --single-hash-file-name-base {work_hash_storage_file} --suppress-hash-file-name-postfix "
-                               "--suppress-console-reporting-output --suppress-output-file-comments")
+        cmd_line_adapter = cmd_line.CommandLineAdapter()
+        exit_code = cmd_line_adapter.run_cmd_line(f"--input-folder {self.work_path} --single-hash-file-name-base {work_hash_storage_file} --suppress-hash-file-name-postfix "
+                                                   "--suppress-console-reporting-output --suppress-output-file-comments")
+
         self.assertEqual(exit_code, cmd_line.ExitCode.OK)
         self.assertTrue(filecmp.cmp(work_hash_storage_file, data_hash_storage_file_123, shallow=False), f"Incorrect output hash file (file '{work_hash_storage_file}')")
 
-        exit_code = os.system(f"smart_hasher --input-file {self.work_path}/file3.txt --input-file {self.work_path}/file2.txt "
-                              f"--preserve-unused-hash-records " # Essence of the test
-                              f"--single-hash-file-name-base {work_hash_storage_file} --suppress-hash-file-name-postfix "
-                              f"--suppress-console-reporting-output --suppress-output-file-comments")
+        cmd_line_adapter = cmd_line.CommandLineAdapter()
+        exit_code = cmd_line_adapter.run_cmd_line(f"--input-file {self.work_path}/file3.txt --input-file {self.work_path}/file2.txt "
+                                                  f"--preserve-unused-hash-records " # Essence of the test
+                                                  f"--single-hash-file-name-base {work_hash_storage_file} --suppress-hash-file-name-postfix "
+                                                  f"--suppress-console-reporting-output --suppress-output-file-comments")
+
+
+
         self.assertEqual(exit_code, cmd_line.ExitCode.OK)
         self.assertTrue(filecmp.cmp(work_hash_storage_file, data_hash_storage_file_123, shallow=False), f"Incorrect output hash file (file '{work_hash_storage_file}')")
 
         shutil.copyfile(f"{self.data_path}/file4.txt", f"{self.work_path}/file4.txt")
-        exit_code = os.system(f"smart_hasher --input-file {self.work_path}/file4.txt --input-file {self.work_path}/file2.txt "
-                              f"--single-hash-file-name-base {work_hash_storage_file} --suppress-hash-file-name-postfix "
-                              f"--suppress-console-reporting-output --suppress-output-file-comments")
+        cmd_line_adapter = cmd_line.CommandLineAdapter()
+        exit_code = cmd_line_adapter.run_cmd_line(f"--input-file {self.work_path}/file4.txt --input-file {self.work_path}/file2.txt "
+                                                  f"--single-hash-file-name-base {work_hash_storage_file} --suppress-hash-file-name-postfix "
+                                                  f"--suppress-console-reporting-output --suppress-output-file-comments")
+
         self.assertEqual(exit_code, cmd_line.ExitCode.OK)
         self.assertTrue(filecmp.cmp(work_hash_storage_file, data_hash_storage_file_24, shallow=False), f"Incorrect output hash file (file '{work_hash_storage_file}')")
 
@@ -161,8 +176,10 @@ class SingleFileHashesStorageTestCase(unittest.TestCase):
         for fn in ["а кириллическое.txt", "В прописное.txt", "в строчное.txt", "имя_без_пробелов.txt", "українська мова.txt", "Л_вначале.txt"]:
             shutil.copyfile(os.path.join(self.data_path, "cyrillic_files", fn), os.path.join(self.work_path, fn))
 
-        exit_code = os.system(f"smart_hasher --input-folder {self.work_path} --single-hash-file-name-base {work_hash_file} --suppress-hash-file-name-postfix "
-                              f"--suppress-console-reporting-output --suppress-output-file-comments")
+        cmd_line_adapter = cmd_line.CommandLineAdapter()
+        exit_code = cmd_line_adapter.run_cmd_line(f"--input-folder {self.work_path} --single-hash-file-name-base {work_hash_file} --suppress-hash-file-name-postfix "
+                                                  f"--suppress-console-reporting-output --suppress-output-file-comments")
+
         self.assertEqual(exit_code, cmd_line.ExitCode.OK)
         self.assertTrue(filecmp.cmp(work_hash_file, data_hash_file, shallow=False), f"Incorrect output hash file (file '{work_hash_file}')")
 

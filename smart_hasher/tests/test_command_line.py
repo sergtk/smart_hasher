@@ -36,8 +36,9 @@ class SimpleCommandLineTestCase(unittest.TestCase):
 
             shutil.copyfile(f'{self.data_path}/file1.txt', data_file_name)
 
-            cmd = f'smart_hasher --input-folder {self.work_path}{input_folder_trailing} --suppress-output-file-comments --suppress-console-reporting-output'
-            exit_code = os.system(cmd)
+            cmd_args = f'--input-folder {self.work_path}{input_folder_trailing} --suppress-output-file-comments --suppress-console-reporting-output'
+            cmd_line_adapter = cmd_line.CommandLineAdapter()
+            exit_code = cmd_line_adapter.run_cmd_line(cmd_args)
             self.assertEqual(exit_code, cmd_line.ExitCode.OK)
         
             with open(f'{self.data_path}/file1.txt.sha1', mode='r') as sha1_expected_file:
@@ -55,7 +56,8 @@ class SimpleCommandLineTestCase(unittest.TestCase):
     def test_calc_hash_for_one_small_file_md5(self):
         shutil.copyfile(f'{self.data_path}/file1.txt', f'{self.work_path}/file1.txt')
 
-        exit_code = os.system(f'smart_hasher --input-folder {self.work_path} --hash-algo md5 --suppress-console-reporting-output --suppress-output-file-comments')
+        cmd_line_adapter = cmd_line.CommandLineAdapter()
+        exit_code = cmd_line_adapter.run_cmd_line(f'--input-folder {self.work_path} --hash-algo md5 --suppress-console-reporting-output --suppress-output-file-comments')
         self.assertEqual(exit_code, cmd_line.ExitCode.OK)
 
         with open(f'{self.data_path}/file1.txt.md5', mode='r') as md5_expected_file:
@@ -70,7 +72,8 @@ class SimpleCommandLineTestCase(unittest.TestCase):
         for i in range(1, 4):
             shutil.copyfile(f'{self.data_path}/file{i}.txt', f'{self.work_path}/file{i}.txt')
 
-        os.system(f'smart_hasher --input-folder {self.work_path} --suppress-console-reporting-output --suppress-output-file-comments')
+        cmd_line_adapter = cmd_line.CommandLineAdapter()
+        exit_code = cmd_line_adapter.run_cmd_line(f'--input-folder {self.work_path} --suppress-console-reporting-output --suppress-output-file-comments')
         
         for i in range(1, 4):
             with open(f'{self.data_path}/file{i}.txt.sha1', mode='r') as sha1_expected_file:
@@ -90,7 +93,9 @@ class SimpleCommandLineTestCase(unittest.TestCase):
         for i in range(1, 4):
             shutil.copyfile(f'{self.data_path}/file{i}.txt', f'{self.work_path}/file{i}.txt')
 
-        os.system(f'smart_hasher --input-folder {self.work_path} --hash-algo md5 --suppress-console-reporting-output --suppress-output-file-comments')
+        cmd_line_adapter = cmd_line.CommandLineAdapter()
+        exit_code = cmd_line_adapter.run_cmd_line(f'--input-folder {self.work_path} --hash-algo md5 --suppress-output-file-comments --suppress-console-reporting-output')
+        self.assertEqual(exit_code, cmd_line.ExitCode.OK)
         
         for i in range(1, 4):
             with open(f'{self.data_path}/file{i}.txt.md5', mode='r') as md5_expected_file:
@@ -103,8 +108,9 @@ class SimpleCommandLineTestCase(unittest.TestCase):
                 self.assertEqual(md5_expected, md5_actual, f'Wrong md5-hash for file "file{i}.txt". Expected: "{md5_expected}", actual: "{md5_actual}"')
 
     def test_specify_non_existent_file(self):
-        exit_code = os.system(f'smart_hasher --input-file {self.work_path}/nofile.txt --suppress-console-reporting-output --retry-pause-on-data-read-error 0')
-        self.assertEqual(cmd_line.ExitCode(exit_code), cmd_line.ExitCode.DATA_READ_ERROR)
+        cmd_line_adapter = cmd_line.CommandLineAdapter()
+        exit_code = cmd_line_adapter.run_cmd_line(f'--input-file {self.work_path}/nofile.txt --suppress-console-reporting-output --retry-pause-on-data-read-error 0')
+        self.assertEqual(exit_code, cmd_line.ExitCode.DATA_READ_ERROR)
 
     def test_simple_force_calc_hash(self):
         data_file_name = f"{self.work_path}/file1.txt"
@@ -117,13 +123,16 @@ class SimpleCommandLineTestCase(unittest.TestCase):
         with open(hash_file_name, "w") as f:
             f.write(wrong_hash)
 
-        exit_code = os.system(f'smart_hasher --input-file {data_file_name} --suppress-console-reporting-output') 
+        cmd_line_adapter = cmd_line.CommandLineAdapter()
+        exit_code = cmd_line_adapter.run_cmd_line(f'--input-file {data_file_name} --suppress-console-reporting-output')
         self.assertEqual(exit_code, 0)
         with open(hash_file_name, "r") as f:
             actual_hash = f.read()
         self.assertEqual(wrong_hash, actual_hash)
 
-        exit_code = os.system(f'smart_hasher --input-file {data_file_name} --force-calc-hash --suppress-console-reporting-output --suppress-output-file-comments')
+        cmd_line_adapter = cmd_line.CommandLineAdapter()
+        exit_code = cmd_line_adapter.run_cmd_line(f'--input-file {data_file_name} --force-calc-hash --suppress-console-reporting-output --suppress-output-file-comments')
+
         self.assertEqual(exit_code, 0)
         with open(hash_file_name, "r") as f:
             actual_hash_text = f.read()
@@ -135,7 +144,8 @@ class SimpleCommandLineTestCase(unittest.TestCase):
 
         # Check hash in output file without comments
 
-        exit_code = os.system(f'smart_hasher --input-folder {self.work_path} --suppress-console-reporting-output --suppress-output-file-comments --hash-file-name-output-postfix test_hash')
+        cmd_line_adapter = cmd_line.CommandLineAdapter()
+        exit_code = cmd_line_adapter.run_cmd_line(f'--input-folder {self.work_path} --suppress-console-reporting-output --suppress-output-file-comments --hash-file-name-output-postfix test_hash')
         self.assertEqual(exit_code, cmd_line.ExitCode.OK)
 
         hash_file_name_expected = f'{self.data_path}/file1.txt.sha1'
@@ -154,7 +164,8 @@ class SimpleCommandLineTestCase(unittest.TestCase):
 
         # Check hash in output file with comments
         
-        exit_code = os.system(f'smart_hasher --input-folder {self.work_path} --suppress-console-reporting-output')
+        cmd_line_adapter = cmd_line.CommandLineAdapter()
+        exit_code = cmd_line_adapter.run_cmd_line(f'--input-folder {self.work_path} --suppress-console-reporting-output')
         self.assertEqual(exit_code, cmd_line.ExitCode.OK)
 
         hash_file_name_expected = f'{self.data_path}/file1.txt.sha1';
@@ -180,7 +191,8 @@ class SimpleCommandLineTestCase(unittest.TestCase):
 
         shutil.copyfile(data_file_name, work_file_name)
 
-        exit_code = os.system(f'smart_hasher --input-file {work_file_name} --suppress-console-reporting-output --suppress-hash-file-name-postfix')
+        cmd_line_adapter = cmd_line.CommandLineAdapter()
+        exit_code = cmd_line_adapter.run_cmd_line(f'--input-file {work_file_name} --suppress-console-reporting-output --suppress-hash-file-name-postfix')
         self.assertEqual(exit_code, cmd_line.ExitCode.APP_USAGE_ERROR)
 
         # Ref: https://docs.python.org/3.7/library/filecmp.html
@@ -199,7 +211,8 @@ class SimpleCommandLineTestCase(unittest.TestCase):
             uc1 = f" --user-comment {uc1}"
             user_comments_args += uc1
 
-        exit_code = os.system(f'smart_hasher --input-folder {self.work_path} --suppress-console-reporting-output {user_comments_args}')
+        cmd_line_adapter = cmd_line.CommandLineAdapter()
+        exit_code = cmd_line_adapter.run_cmd_line(f'--input-folder {self.work_path} --suppress-console-reporting-output {user_comments_args}')
         self.assertEqual(exit_code, cmd_line.ExitCode.OK)
 
         with open(f'{self.work_path}/file1.txt.sha1') as hash_file:
@@ -218,10 +231,12 @@ class SimpleCommandLineTestCase(unittest.TestCase):
     def test_non_existent_file_and_folder_error(self):
         shutil.copyfile(f'{self.data_path}/file1.txt', f'{self.work_path}/file1.txt')
 
-        exit_code = os.system(f'smart_hasher --input-folder {self.work_path}\\fake_folder --suppress-console-reporting-output')
+        cmd_line_adapter = cmd_line.CommandLineAdapter()
+        exit_code = cmd_line_adapter.run_cmd_line(f'--input-folder {self.work_path}\\fake_folder --suppress-console-reporting-output')
         self.assertTrue(exit_code == cmd_line.ExitCode.DATA_READ_ERROR, f"Report on non-existent folder expected")
                     
-        exit_code = os.system(f'smart_hasher --input-file {self.work_path}\\file1.txt --input-file {self.work_path}\\fake_file.txt --suppress-console-reporting-output')
+        cmd_line_adapter = cmd_line.CommandLineAdapter()
+        exit_code = cmd_line_adapter.run_cmd_line(f'--input-file {self.work_path}\\file1.txt --input-file {self.work_path}\\fake_file.txt --suppress-console-reporting-output')
         self.assertTrue(exit_code == cmd_line.ExitCode.DATA_READ_ERROR, f"Report on non-existent file expected")
 
     #@unittest.skip("This is sandbox, actually not unit test")
@@ -232,7 +247,8 @@ class SimpleCommandLineTestCase(unittest.TestCase):
         print("test_dummy run")
         shutil.copyfile(f'{self.data_path}/file1.txt', f'{self.work_path}/file1.txt')
 
-        os.system(f'smart_hasher --input-folder {self.work_path} --suppress-console-reporting-output')
+        cmd_line_adapter = cmd_line.CommandLineAdapter()
+        cmd_line_adapter.run_cmd_line(f'--input-folder {self.work_path} --suppress-console-reporting-output')
         
         with open(f'{self.data_path}/file1.txt.sha1', mode='r') as sha1_expected_file:
             sha1_expected = sha1_expected_file.read()
@@ -257,7 +273,8 @@ if __name__ == '__main__':
         suite = unittest.TestSuite()
         #suite.addTest(SimpleCommandLineTestCase('test_calc_hash_for_one_small_file_sha1'))
         #suite.addTest(SimpleCommandLineTestCase('test_non_existent_file_and_folder_error'))
-        suite.addTest(SimpleCommandLineTestCase('test_calc_hash_for_one_small_file_md5'))
+        #suite.addTest(SimpleCommandLineTestCase('test_calc_hash_for_one_small_file_md5'))
+        suite.addTest(SimpleCommandLineTestCase('test_calc_hash_for_three_small_files_md5'))
         runner = unittest.TextTestRunner()
         runner.run(suite)
     else:
