@@ -371,6 +371,7 @@ class CommandLineAdapter(object):
 
         return exit_code
 
+    # input_args is a list of command line arguments. Typically the following value is passed: sys.argv[1:]
     def run(self, input_args):
         try:
             self._fill_start_time_dict()
@@ -401,7 +402,7 @@ class CommandLineAdapter(object):
 
         return ExitCode.OK
 
-    # `cmd_line` is the str, which contains CLI parameters without script itself.
+    # `cmd_line` is the string, which contains CLI parameters without script itself.
     # This function is primarily for testing
     def run_cmd_line(self, cmd_line):
         # Ref: https://stackoverflow.com/questions/19719971/why-do-i-need-4-backslashes-in-a-python-path
