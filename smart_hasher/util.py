@@ -13,10 +13,10 @@ def convert_size_to_display(size_bytes: float) -> str:
     Ref: "Better way to convert file sizes in Python" https://stackoverflow.com/a/14822210/13441
     """
 
-    global size_names
+    # global size_names
 
     if size_bytes == 0:
-       return "0 " + size_names[0]
+        return "0 " + size_names[0]
 
     if size_bytes < 0:
         sign = "-"
@@ -25,7 +25,7 @@ def convert_size_to_display(size_bytes: float) -> str:
         sign = ""
 
     if size_bytes == math.inf:
-        return f"{sign}infinity";
+        return f"{sign}infinity"
 
     i = int(math.floor(math.log(size_bytes, 1024)))
     p = math.pow(1024, i)
@@ -65,10 +65,10 @@ def pause(pause_duration = 30):
         # Ref: https://stackoverflow.com/questions/24072790/detect-key-press-in-python
         pi = is_program_interrupted_by_user()
         if pi:
-            return False;
+            return False
     if pause_duration > 0:
         print(" " * 60)
-    return True;
+    return True
 
 def format_seconds(seconds: float) -> str:
     """    
@@ -149,4 +149,3 @@ class AppUsageError(Exception):
     Ref: https://docs.python.org/3/library/exceptions.html
     Ref: https://stackoverflow.com/questions/1319615/proper-way-to-declare-custom-exceptions-in-modern-python
     """
-    pass

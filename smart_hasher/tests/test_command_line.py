@@ -1,12 +1,8 @@
 import unittest
-import smart_hasher
-import subprocess
 import os
 import shutil
 import filecmp
-import asyncio
 import tracemalloc
-import filecmp
 
 import tests.util_test
 import cmd_line
@@ -33,7 +29,7 @@ class SimpleCommandLineTestCase(unittest.TestCase):
 
             tests.util_test.clean_work_dir()
 
-            data_file_name = f'{self.work_path}/file1.txt';
+            data_file_name = f'{self.work_path}/file1.txt'
 
             shutil.copyfile(f'{self.data_path}/file1.txt', data_file_name)
 
@@ -75,6 +71,7 @@ class SimpleCommandLineTestCase(unittest.TestCase):
 
         cmd_line_adapter = cmd_line.CommandLineAdapter()
         exit_code = cmd_line_adapter.run_cmd_line(f'--input-folder {self.work_path} --suppress-console-reporting-output --suppress-output-file-comments')
+        self.assertEqual(exit_code, cmd_line.ExitCode.OK)
         
         for i in range(1, 4):
             with open(f'{self.data_path}/file{i}.txt.sha1', mode='r') as sha1_expected_file:
@@ -169,8 +166,8 @@ class SimpleCommandLineTestCase(unittest.TestCase):
         exit_code = cmd_line_adapter.run_cmd_line(f'--input-folder {self.work_path} --suppress-console-reporting-output')
         self.assertEqual(exit_code, cmd_line.ExitCode.OK)
 
-        hash_file_name_expected = f'{self.data_path}/file1.txt.sha1';
-        hash_file_name_actual = f'{self.work_path}/file1.txt.sha1';
+        hash_file_name_expected = f'{self.data_path}/file1.txt.sha1'
+        hash_file_name_actual = f'{self.work_path}/file1.txt.sha1'
 
         with open(hash_file_name_expected, mode='r') as hash_file_expected:
             hash_expected = hash_file_expected.read()
@@ -187,8 +184,8 @@ class SimpleCommandLineTestCase(unittest.TestCase):
         self.assertEqual(hash_expected, hash_actual, 'Wrong hash for input file "file1.txt". Expected: "{}", actual: "{}"'.format(hash_expected, hash_actual))
 
     def test_error_report_on_equal_data_and_hash_file_names(self):
-        data_file_name = f'{self.data_path}/file1.txt';
-        work_file_name = f'{self.work_path}/file1.txt';
+        data_file_name = f'{self.data_path}/file1.txt'
+        work_file_name = f'{self.work_path}/file1.txt'
 
         shutil.copyfile(data_file_name, work_file_name)
 
@@ -234,11 +231,11 @@ class SimpleCommandLineTestCase(unittest.TestCase):
 
         cmd_line_adapter = cmd_line.CommandLineAdapter()
         exit_code = cmd_line_adapter.run_cmd_line(f'--input-folder {self.work_path}\\fake_folder --suppress-console-reporting-output')
-        self.assertTrue(exit_code == cmd_line.ExitCode.DATA_READ_ERROR, f"Report on non-existent folder expected")
+        self.assertTrue(exit_code == cmd_line.ExitCode.DATA_READ_ERROR, "Report on non-existent folder expected")
                     
         cmd_line_adapter = cmd_line.CommandLineAdapter()
         exit_code = cmd_line_adapter.run_cmd_line(f'--input-file {self.work_path}\\file1.txt --input-file {self.work_path}\\fake_file.txt --suppress-console-reporting-output')
-        self.assertTrue(exit_code == cmd_line.ExitCode.DATA_READ_ERROR, f"Report on non-existent file expected")
+        self.assertTrue(exit_code == cmd_line.ExitCode.DATA_READ_ERROR, "Report on non-existent file expected")
 
     #@unittest.skip("This is sandbox, actually not unit test")
     def _test_sandbox(self):

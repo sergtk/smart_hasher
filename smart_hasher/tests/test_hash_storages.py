@@ -1,4 +1,3 @@
-import smart_hasher
 import unittest
 import os
 import shutil
@@ -6,8 +5,6 @@ import tests.util_test
 import hash_storages
 import filecmp
 import cmd_line
-import pprint
-import locale
 
 class SingleFileHashesStorageTestCase(unittest.TestCase):
 
@@ -114,7 +111,7 @@ class SingleFileHashesStorageTestCase(unittest.TestCase):
         for single_hash_file in [False, True]:
             tests.util_test.clean_work_dir()
 
-            hash_storage_file = f"dummy_hash_storage_1_general_abs.sha1"
+            hash_storage_file = "dummy_hash_storage_1_general_abs.sha1"
 
             data_hash_storage_file = os.path.join(self.data_path, "hash_storages", hash_storage_file)
             work_hash_storage_file = os.path.join(self.work_path, hash_storage_file)

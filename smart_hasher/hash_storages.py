@@ -33,14 +33,12 @@ class HashStorageAbstract(abc.ABC):
         """
         Load hashes from file or other sources if there are already calculated ones which corresponce to the parameters of the class
         """
-        pass
 
     @abc.abstractmethod
     def save_hashes_info(self):
         """
         Save calculated hashes info to file(s) or other destination with a given format etc...
         """
-        pass
 
     @abc.abstractmethod
     def get_hash_file_name(self, data_file_name):
@@ -48,21 +46,18 @@ class HashStorageAbstract(abc.ABC):
         This function is just for reporting.
         To check if the data file has hash the function call `has_hash` should be made
         """
-        pass
     
     @abc.abstractmethod
     def has_hash(self, data_file_name):
         """
         Check if the hash for file data_file_name is already calculated
         """
-        pass
 
     @abc.abstractmethod
     def set_hash(self, data_file_name, hash_value):
         """
         Force re-hash should be accounted
         """
-        pass
 
     def __enter__ (self):
         """
@@ -143,12 +138,15 @@ class SingleFileHashesStorage(HashStorageAbstract):
         self.last_time_load_save = time.time() # Strictly speaking this is not correct value, but construction time is good value to avoid non-initialized variable
         self.__backup_hash_file_name = ""
 
-    def __input_hash_file_error_message(self, error_message, hash_file_name, lineIndex, line):
-        return f"{error_message}.\n    File {hash_file_name}, Line {lineIndex}: {line[0:200]}"
+    def __input_hash_file_error_message(self, error_message, hash_file_name, line_index, line):
+        ret = f"{error_message}.\n    File {hash_file_name}"
+        if line_index is not None:
+            ret += f", Line {line_index}: {line[0:200]}"
+        return ret
 
-    def __load_hash_info_entry(self, data_file_name, hash, hash_file_name):
+    def __load_hash_info_entry(self, data_file_name, hash_value, hash_file_name, line_index = None, line = None):
         if self.hash_data.get(data_file_name) is not None:
-            raise util.AppUsageError(self.__input_hash_file_error_message("Input hash file contains duplicated entry for file '{data_file_name}'", hash_file_name, lineIndex, line))
+            raise util.AppUsageError(self.__input_hash_file_error_message("Input hash file contains duplicated entry for file '{data_file_name}'", hash_file_name, line_index, line))
 
         #data_file_name =  os.path.abspath(data_file_name)
         data_file_name = util.rel_file_path(data_file_name, hash_file_name, True)
@@ -158,38 +156,38 @@ class SingleFileHashesStorage(HashStorageAbstract):
                 
         # False in tuple specify that element was not accessed. This mean that it should not be saved in output file.
         # True should be later specfieid to save info
-        self.hash_data[data_file_name] = (hash, False)
+        self.hash_data[data_file_name] = (hash_value, False)
     
     def __load_hashes_info_from_text(self, hash_file_name):
         """
         Ref: https://docs.python.org/3.7/library/collections.html#collections.OrderedDict
         Ref: https://docs.python.org/3/library/re.html
         """
-        comment_pattern = re.compile("\s*(#.*)?\n?")
+        comment_pattern = re.compile(r"\s*(#.*)?\n?")
         # Ref: https://stackoverflow.com/questions/50618116/regex-for-finding-file-paths
         # Ref: https://stackoverflow.com/questions/2758921/regular-expression-that-finds-and-replaces-non-ascii-characters-with-python
-        hash_record_pattern = re.compile("(?P<hash>[0-9A-Fa-f]+)\s+\*(?P<file>[\\\\/\w.: \\-\u0080-\uFFFF\)\(]+)\n?")
+        hash_record_pattern = re.compile(r"(?P<hash>[0-9A-Fa-f]+)\s+\*(?P<file>[\\\\/\w.: \\-\u0080-\uFFFF\)\(]+)\n?")
 
         with open(hash_file_name, "r") as f:
             line = f.readline()
-            lineIndex = 1
+            line_index = 1
             while line:
                 # Parse and skip comments
                 if comment_pattern.fullmatch(line):
                     line = f.readline()
-                    lineIndex += 1
+                    line_index += 1
                     continue
                 # print(f"line for work: {line}")
                 match = hash_record_pattern.fullmatch(line)
                 if match is None:
-                    raise util.AppUsageError(self.__input_hash_file_error_message("Input file with hashes has wrong format", hash_file_name, lineIndex, line))
-                hash = match.group("hash").lower()
+                    raise util.AppUsageError(self.__input_hash_file_error_message("Input file with hashes has wrong format", hash_file_name, line_index, line))
+                hash_value = match.group("hash").lower()
                 data_file_name = match.group("file")
 
-                self.__load_hash_info_entry(data_file_name, hash, hash_file_name)
+                self.__load_hash_info_entry(data_file_name, hash_value, hash_file_name, line_index, line)
 
                 line = f.readline()
-                lineIndex += 1
+                line_index += 1
 
     def __load_hashes_info_from_json(self, hash_file_name):
         """
@@ -200,8 +198,8 @@ class SingleFileHashesStorage(HashStorageAbstract):
             json_data = json.load(f)
         for hash_record in json_data["data"]:
             data_file_name = hash_record["file_name"]
-            hash = hash_record["hash"]
-            self.__load_hash_info_entry(data_file_name, hash, hash_file_name)
+            hash_value = hash_record["hash"]
+            self.__load_hash_info_entry(data_file_name, hash_value, hash_file_name)
 
     def load_hashes_info(self):
         if self.single_hash_file_name_base is None:
@@ -242,7 +240,6 @@ class SingleFileHashesStorage(HashStorageAbstract):
             if self.json_format:
                 # Ref: https://stackoverflow.com/questions/244777/can-comments-be-used-in-json
                 json_data["_comment"] = all_header_comments
-                pass
             else:
                 comment_str = "# " + "\n# ".join(all_header_comments) + "\n"
                 with open(hash_file_name, "a") as hash_file:
@@ -257,13 +254,13 @@ class SingleFileHashesStorage(HashStorageAbstract):
 
         # Ref: https://stackoverflow.com/questions/3294889/iterating-over-dictionaries-using-for-loops
         #for data_file_name, hash in self.hash_data.items():
-        for data_file_name, hash in self.hash_data.items():
+        for data_file_name, hash_value in self.hash_data.items():
             if self.use_absolute_file_names:
                 data_file_name_user = data_file_name
                 assert os.path.isabs(data_file_name_user)
             else:
                 data_file_name_user = util.rel_file_path(data_file_name, hash_file_name, False)
-            hash_data_sorted.append((data_file_name_user, hash))
+            hash_data_sorted.append((data_file_name_user, hash_value))
 
         if self.sort_by_hash_value:
             # Sort by hash. If hashes equal, sort by file name

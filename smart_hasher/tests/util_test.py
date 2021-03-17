@@ -1,6 +1,7 @@
 import os
 import pathlib
 import json
+import shutil
 
 def get_data_path():
     return os.path.join(os.getcwd(), "tests", "data")
@@ -22,7 +23,7 @@ def clean_work_dir():
             elif os.path.isdir(file_path):
                 shutil.rmtree(file_path)
         except Exception as e:
-            raise Exception(f'Failed to delete "{file_path}"', e)
+            raise Exception(f'Failed to delete "{file_path}"') from e
 
 # This function compare two json files.
 # Note, this is not comparison of any json files, but output of the program only.

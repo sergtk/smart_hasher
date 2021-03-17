@@ -1,6 +1,4 @@
 import sys
-import hash_calc
-from pprint import pprint
 import cmd_line
 
 # breakpoint()

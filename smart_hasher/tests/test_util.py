@@ -1,10 +1,8 @@
-import os
 import math
 import unittest
 #import smart_hasher
 #import hash_calc
 import util
-import tests.util_test
 
 class UtilTestCase(unittest.TestCase):
     """This class contains testing functionality for utils

@@ -3,14 +3,12 @@ import os
 from datetime import datetime
 import util
 import enum
-import time
-import random
 import sys
 
 class FileHashCalc(object):
     """This is a class to calculate hash for one file"""
 
-    hash_algos = ("md5", "sha1", "sha224", "sha256", "sha384", "sha512");
+    hash_algos = ("md5", "sha1", "sha224", "sha256", "sha384", "sha512")
     hash_algo_default_str = "sha1"
 
     def __init__(self):
@@ -25,8 +23,8 @@ class FileHashCalc(object):
     # Ref: https://docs.python.org/2/library/hashlib.html
     def __get_hasher(self, hash_str):
         # Ref: https://docs.python.org/3/library/hashlib.html#hashlib.new
-        ret = hashlib.new(hash_str);
-        return ret;
+        ret = hashlib.new(hash_str)
+        return ret
 
     # Ref: https://docs.python.org/3.7/library/enum.html
     @enum.unique
@@ -58,7 +56,7 @@ class FileHashCalc(object):
         hasher = self.__get_hasher(self.hash_str)
         total_size = os.path.getsize(self.file_name)
 
-        recent_moment = start_moment = datetime.now();
+        recent_moment = start_moment = datetime.now()
         recent_size = 0
         recent_speed = 0
         recent_speed_readable = "-"
@@ -93,14 +91,14 @@ class FileHashCalc(object):
                 # time.sleep(1)
 
                 if percent > prev_percent:
-                    cur_moment = datetime.now();
+                    cur_moment = datetime.now()
                     elapsed_seconds = (cur_moment - start_moment).total_seconds()
                     if (elapsed_seconds == 0):
                         continue
-                    remain_seconds = elapsed_seconds / percent * (10000 - percent);
+                    remain_seconds = elapsed_seconds / percent * (10000 - percent)
 
-                    speed = cur_size / elapsed_seconds;
-                    speed_readable = util.convert_size_to_display(speed);
+                    speed = cur_size / elapsed_seconds
+                    speed_readable = util.convert_size_to_display(speed)
 
                     recent_seconds = (cur_moment - recent_moment).total_seconds()
                     if (recent_seconds > 3 and recent_size > 0):
@@ -112,7 +110,7 @@ class FileHashCalc(object):
                     # Ref: "Using multiple arguments for string formatting in Python (e.g., '%s … %s')" https://stackoverflow.com/a/3395158/13441
                     # Ref: "Display number with leading zeros" https://stackoverflow.com/a/134951/13441
                     con_report = '{0}.{1:02d}% done ({2:,d} bytes). Remaining time: {3}. File average speed: {4}/sec. Recent speed: {5}/sec.'. \
-                            format(int(percent / 100), int(percent % 100), cur_size, util.format_seconds(remain_seconds), speed_readable, recent_speed_readable);
+                            format(int(percent / 100), int(percent % 100), cur_size, util.format_seconds(remain_seconds), speed_readable, recent_speed_readable)
                     con_report_len_new = len(con_report)
                     if con_report_len_new < con_report_len:
                         con_report += " " * (con_report_len - con_report_len_new)
@@ -141,5 +139,5 @@ class FileHashCalc(object):
                 if cur_try < self.retry_count_on_data_read_error:
                     self._info(f"Retry {cur_try + 1} of {self.retry_count_on_data_read_error}")
                 else:
-                    self._info(f"Skip file. The hash for it can't be calculated due to the errors.\n")
+                    self._info("Skip file. The hash for it can't be calculated due to the errors.\n")
                     return self.ReturnCode.DATA_READ_ERROR
