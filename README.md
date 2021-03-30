@@ -37,4 +37,4 @@ Please check [RELEASE_NOTES.md](RELEASE_NOTES.md) file
 
 ## Developer doc
 
-Developer doc (extract by [pydoc](https://docs.python.org/3/library/pydoc.html) from source code) is available at <https://sergtk.github.io/smart_hasher/smart_hasher.html>
+Developer doc (extracted with the [pydoc](https://docs.python.org/3/library/pydoc.html) from the source code) is available at <https://sergtk.github.io/smart_hasher/smart_hasher.html>
