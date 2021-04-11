@@ -134,7 +134,7 @@ class FileHashCalc(object):
             except OSError as err:
                 self._info()
                 self._info(f"OS Error. {type(err)}: {err.strerror} (errno = {err.errno}, filename = {err.filename})")
-                if (not util.pause(self.retry_pause_on_data_read_error)):
+                if not util.pause(self.retry_pause_on_data_read_error):
                     return self.ReturnCode.PROGRAM_INTERRUPTED_BY_USER
                 if cur_try < self.retry_count_on_data_read_error:
                     self._info(f"Retry {cur_try + 1} of {self.retry_count_on_data_read_error}")

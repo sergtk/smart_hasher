@@ -2,6 +2,7 @@ import msvcrt
 import math
 import time
 import os
+import datetime
 
 # Ref: https://en.wikipedia.org/wiki/Megabyte
 size_names = ("B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB")
@@ -126,7 +127,7 @@ def rel_file_path(work_file_name, base_file_name, return_absolute_path = False):
         work_rel = work_dir
 
     ret = work_file
-    if (work_rel != "."):
+    if work_rel != ".":
         ret = str(os.path.join(work_rel, ret))
 
     return ret
@@ -141,6 +142,27 @@ def drive_normcase(path):
     ret = os.path.join(drive, tail)
     return ret
 
+def get_datetime_str(dt: datetime) -> str:
+    if dt is None:
+        return "-"
+    ret = dt.strftime("%Y.%m.%d %H:%M:%S")
+    return ret
+
+# Ref: https://stackoverflow.com/a/8907269/13441
+def get_timedelta_str(td: datetime.timedelta) -> str:
+    if td is None:
+        return "-"
+    hours = 0
+    if td.days > 0:
+        hours = td.days * 24
+    h1, min_sec = divmod(td.seconds, 3600)
+    hours += h1
+    mins, secs = divmod(min_sec, 60)
+    ret = ""
+    if hours > 0:
+        ret += f"{hours}:"
+    ret += f"{mins:02}:{secs:02}"
+    return ret
 
 class AppUsageError(Exception):
     """
@@ -149,3 +171,52 @@ class AppUsageError(Exception):
     Ref: https://docs.python.org/3/library/exceptions.html
     Ref: https://stackoverflow.com/questions/1319615/proper-way-to-declare-custom-exceptions-in-modern-python
     """
+
+class ProcessingTimeEstimator(object):
+
+    class Result(object):
+        def __init__(self):
+            self.elapsed_duration = None
+            self.estimated_duration_remains = None
+            self.estimated_end_time = None
+
+        def get_str(self):
+            estimated_end_time_str = get_datetime_str(self.estimated_end_time)
+            elapsed_duration_str = get_timedelta_str(self.elapsed_duration)
+            estimated_duration_remains_str = get_timedelta_str(self.estimated_duration_remains)
+            ret = f"Elapsed time for program run: {elapsed_duration_str}. Estimated duration to completion: {estimated_duration_remains_str}, datetime: {estimated_end_time_str}"
+            return ret
+
+    def __init__(self):
+        self.start_time = datetime.datetime.now()
+        self.total_size = 0
+        self.handled_size = 0
+
+    def reset_start_time(self, start_time = None):
+        if start_time is None:
+            self.start_time = datetime.datetime.now()
+        else:
+            self.start_time = start_time
+
+    def inc_total_size(self, size):
+        self.total_size += size
+
+    def inc_total_size_with_files(self, file_name_list):
+        for file_name in file_name_list:
+            self.total_size += os.path.getsize(file_name)
+
+    def inc_handled_size(self, size):
+        self.handled_size += size
+
+    def get_result(self, cur_time = None):
+        if cur_time is None:
+            cur_time = datetime.datetime.now()
+        passed_duration = cur_time - self.start_time
+        remained_size = self.total_size - self.handled_size
+        ret = self.Result()
+        if self.handled_size == 0:
+            return ret
+        ret.elapsed_duration = passed_duration
+        ret.estimated_duration_remains = passed_duration * (remained_size / self.handled_size)
+        ret.estimated_end_time = cur_time + ret.estimated_duration_remains
+        return ret

@@ -101,7 +101,7 @@ class CommandLineAdapter(object):
         for ec in ExitCode:
             description += f"{ec:2} - {ec.name}"
             code_desc = exit_code_descriptions.get(ec)
-            if (code_desc is not None):
+            if code_desc is not None:
                 description += f": {code_desc}"
             description += "\n"
 
@@ -188,9 +188,6 @@ class CommandLineAdapter(object):
 
         return postfix
 
-    def _get_date_time_str(self, dateTime: datetime) -> str:
-        return dateTime.strftime("%Y.%m.%d %H:%M:%S")
-
     def _handle_input_file(self, hash_storage: hash_storages.HashStorageAbstract, input_file_name):
         """
         Handle single input file input_file_name
@@ -199,11 +196,11 @@ class CommandLineAdapter(object):
             raise TypeError(f"HashStorageAbstract expected, {type(hash_storage)} found")
 
         start_date_time = datetime.now()
-        self._info("Handle file start time: " + self._get_date_time_str(start_date_time) + " (" + input_file_name + ")")
+        self._info("Handle file start time: " + util.get_datetime_str(start_date_time) + " (" + input_file_name + ")")
 
         # Ref: https://stackoverflow.com/questions/82831/how-do-i-check-whether-a-file-exists-without-exceptions
         if not self._cmd_line_args.force_calc_hash and hash_storage.has_hash(input_file_name):
-            self._info("Hash for file '" + input_file_name + "' exists ... calculation of hash skipped.\n")
+            self._info("Hash for file '" + input_file_name + "' exists ... calculation of hash skipped.")
             return ExitCode.OK_SKIPPED_ALREADY_CALCULATED
         self._info("Calculate hash for file '" + input_file_name + "'...")
 
@@ -230,15 +227,15 @@ class CommandLineAdapter(object):
         self._info("HASH:", hash_value, "(storage in file '" + output_file_name + "')")
 
         end_date_time = datetime.now()
-        self._info("Handle file end time: " + self._get_date_time_str(end_date_time) + " (" + input_file_name + ")")
+        self._info("Handle file end time: " + util.get_datetime_str(end_date_time) + " (" + input_file_name + ")")
         seconds = int((end_date_time - start_date_time).total_seconds())
         # print("Elapsed time: {0}:{1:02d}:{2:02d}".format(int(seconds / 60 / 60), int(seconds / 60) % 60, seconds % 60))
 
         file_size = os.path.getsize(input_file_name)
         speed = file_size / seconds if seconds > 0 else 0
-        self._info("Elapsed time: {0} (Average speed: {1}/sec)\n".format(util.format_seconds(seconds), util.convert_size_to_display(speed)))
+        self._info(f"Elapsed time for file: {util.format_seconds(seconds)} (Average speed: {util.convert_size_to_display(speed)}/sec)")
      
-        if (self._cmd_line_args.pause_after_file is not None):
+        if self._cmd_line_args.pause_after_file is not None:
             if not util.pause(self._cmd_line_args.pause_after_file):
                 # Return specific error code
                 return ExitCode.PROGRAM_INTERRUPTED_BY_USER
@@ -254,7 +251,7 @@ class CommandLineAdapter(object):
         # Ref: https://docs.python.org/2/library/fnmatch.html
         # if fnmatch.fnmatch(base_name, '*.txt'):
 
-        if (self._cmd_line_args.input_folder_file_mask_include):
+        if self._cmd_line_args.input_folder_file_mask_include:
             file_included = False
             include_masks = self._cmd_line_args.input_folder_file_mask_include.split(";")
             for include_mask in include_masks:
@@ -264,7 +261,7 @@ class CommandLineAdapter(object):
             if not file_included:
                 return False
 
-        if (self._cmd_line_args.input_folder_file_mask_exclude):
+        if self._cmd_line_args.input_folder_file_mask_exclude:
             exclude_masks = self._cmd_line_args.input_folder_file_mask_exclude.split(";")
             for exclude_mask in exclude_masks:
                 if fnmatch.fnmatch(file_name, exclude_mask):
@@ -291,14 +288,14 @@ class CommandLineAdapter(object):
 
         input_file_names = []
 
-        if (self._cmd_line_args.input_file):
+        if self._cmd_line_args.input_file:
             for input_file_name in self._cmd_line_args.input_file:
                 if not os.path.isfile(input_file_name):
                     self._info(f"Input file does not exist: {input_file_name}")
                     return ExitCode.DATA_READ_ERROR
                 input_file_names.append(input_file_name)
 
-        if (self._cmd_line_args.input_folder):
+        if self._cmd_line_args.input_folder:
             # Ref: https://docs.python.org/3/library/os.html#os.walk
             # Ref: https://www.pythoncentral.io/how-to-traverse-a-directory-tree-in-python-guide-to-os-walk/
             for input_folder in self._cmd_line_args.input_folder:
@@ -316,6 +313,9 @@ class CommandLineAdapter(object):
         # remove duplicates
         # Ref: https://www.w3schools.com/python/python_howto_remove_duplicates.asp
         input_file_names = list(dict.fromkeys(input_file_names))
+
+        total_time_estimator = util.ProcessingTimeEstimator()
+        total_time_estimator.inc_total_size_with_files(input_file_names)
     
         # Sort accounting unicode
         key1 = lambda v: (locale.strxfrm(v).casefold(), locale.strxfrm(v))
@@ -335,6 +335,14 @@ class CommandLineAdapter(object):
             elif h >= ExitCode.FAILED:
                 return h
 
+            if h == ExitCode.OK_SKIPPED_ALREADY_CALCULATED:
+                total_time_estimator.inc_total_size(-os.path.getsize(input_file_name))
+            else:
+                total_time_estimator.inc_handled_size(os.path.getsize(input_file_name))
+            
+            total_time_str = total_time_estimator.get_result().get_str()
+            self._info(total_time_str + "\n")
+
         if data_read_error:
             return ExitCode.DATA_READ_ERROR
         return ExitCode.OK
@@ -342,7 +350,7 @@ class CommandLineAdapter(object):
     def _handle_input(self):
         if self._cmd_line_args.single_hash_file_name_base or self._cmd_line_args.single_hash_file_name_base_json:
             hash_storage = hash_storages.SingleFileHashesStorage()
-            
+
             if self._cmd_line_args.single_hash_file_name_base:
                 hash_storage.single_hash_file_name_base = self._cmd_line_args.single_hash_file_name_base
             else:

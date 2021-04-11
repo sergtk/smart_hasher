@@ -10,6 +10,8 @@
 
 [*] Fix handling when smart_hasher reads hash file with file names which contain parentheses (#35)
 
+[+] Show overall time passed and estimated time to complate handling of all files (#39)
+
 ## Internal changes
 
 Stub
