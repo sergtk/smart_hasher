@@ -284,6 +284,8 @@ class SingleFileHashesStorage(HashStorageAbstract):
                         json_data["data"].append({"file_name": data_file_name, "hash": hash_info[0]})
                     else:
                         hash_file.write(f"{hash_info[0]} *{data_file_name}\n")
+        except BaseException as be: # pylint: disable=W0703
+            raise be
         finally:
             if not self.json_format:
                 hash_file.close()

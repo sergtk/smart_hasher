@@ -152,11 +152,8 @@ def get_datetime_str(dt: datetime) -> str:
 def get_timedelta_str(td: datetime.timedelta) -> str:
     if td is None:
         return "-"
-    hours = 0
-    if td.days > 0:
-        hours = td.days * 24
-    h1, min_sec = divmod(td.seconds, 3600)
-    hours += h1
+    hours, min_sec = divmod(td.seconds, 3600)
+    hours += td.days * 24
     mins, secs = divmod(min_sec, 60)
     ret = ""
     if hours > 0:
