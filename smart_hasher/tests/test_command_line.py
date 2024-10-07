@@ -264,7 +264,8 @@ class SimpleCommandLineTestCase(unittest.TestCase):
             print(stat)
 
 if __name__ == '__main__':
-    run_single_test = True
+    # Set up the value to run all tests or just one which is useful during development.
+    run_single_test = False
     if run_single_test:
         # Run single test
         # https://docs.python.org/3/library/unittest.html#organizing-test-code

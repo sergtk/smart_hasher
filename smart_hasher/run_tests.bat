@@ -3,5 +3,5 @@
 
 cls
 :: Ref: https://stackoverflow.com/questions/52021815/where-visual-studio-install-python
-set RUNNER="C:\Program Files (x86)\Microsoft Visual Studio\Shared\Python37_86\python.exe"
-%RUNNER% -m unittest discover -s tests -v
+set PYTHON1="C:\Program Files\Python312\python.exe"
+%PYTHON1% -m unittest discover -s tests -v

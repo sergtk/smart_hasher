@@ -12,6 +12,8 @@
 
 [+] Show overall time passed and estimated time to complate handling of all files (#39)
 
+[*] Fix handling excluded masks, file names without path compared (#41)
+
 ## Internal changes
 
 Stub
