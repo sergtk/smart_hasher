@@ -26,7 +26,8 @@ class HashStorageAbstract(abc.ABC):
         Ref: https://docs.python.org/3/library/os.path.html#os.path.realpath
         """
         if os.path.normcase(os.path.realpath(data_file_name)) == os.path.normcase(os.path.realpath(hash_file_name)):
-            raise util.AppUsageError(f"Data and hash file names are the same: '{data_file_name}'. Data and hash file names should specify different files to avoid data loss of data file")
+            raise util.AppUsageError(f"Data and hash file names are the same: '{data_file_name}'. Data and hash file names should specify "
+                " different files to avoid data loss in data files. Please exclude hash file(s) from input data files")
         
     @abc.abstractmethod
     def load_hashes_info(self):
@@ -232,9 +233,12 @@ class SingleFileHashesStorage(HashStorageAbstract):
         if self.json_format:
             json_data = {}
         else:
+            hash_file_folder = os.path.split(hash_file_name)[0]
+            if hash_file_folder != "" and not os.path.isdir(hash_file_folder):
+                raise Exception(f"Folder to create hash file in does not exist: {hash_file_folder}")
             # Create empty file
-            # Ref: https://stackoverflow.com/questions/12654772/create-empty-file-using-python
-            open(hash_file_name, "w").close()
+            with open(hash_file_name, "w"):
+                pass
 
         if not self.suppress_hash_file_comments:
             if self.json_format:
@@ -331,7 +335,7 @@ class SingleFileHashesStorage(HashStorageAbstract):
         backup_hash_file_name = self.__get_backup_hash_file_name()
         if os.path.isfile(hash_file_name):
             shutil.copyfile(hash_file_name, backup_hash_file_name)
-	        #time.sleep(5)
+            #time.sleep(5)
 
     def __hash_file_del_backup(self):
         backup_hash_file_name = self.__get_backup_hash_file_name()

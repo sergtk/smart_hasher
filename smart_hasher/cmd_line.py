@@ -246,10 +246,9 @@ class CommandLineAdapter(object):
         """
         Ref: "Extract file name from path, no matter what the os/path format" https://stackoverflow.com/a/8384788/13441
         """
-        # base_name = ntpath.basename(file_name)
+        # base_file_name = ntpath.basename(file_name)
+        base_file_name = os.path.basename(file_name)
 
-        # Ref: https://docs.python.org/2/library/fnmatch.html
-        # if fnmatch.fnmatch(base_name, '*.txt'):
 
         if self._cmd_line_args.input_folder_file_mask_include:
             file_included = False
@@ -264,7 +263,7 @@ class CommandLineAdapter(object):
         if self._cmd_line_args.input_folder_file_mask_exclude:
             exclude_masks = self._cmd_line_args.input_folder_file_mask_exclude.split(";")
             for exclude_mask in exclude_masks:
-                if fnmatch.fnmatch(file_name, exclude_mask):
+                if fnmatch.fnmatch(base_file_name, exclude_mask):
                     return False
         return True
 

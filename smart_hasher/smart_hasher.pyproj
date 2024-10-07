@@ -15,7 +15,7 @@
     <LaunchProvider>Standard Python launcher</LaunchProvider>
     <CommandLineArguments>--input-file E:\projects\soft_tools\smart_hasher\repo\smart_hasher\smart_hasher\tests\tmp\dummy_hash_storage_1_general_abs.sha1 --suppress-hash-file-name-postfix</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
-    <InterpreterId>MSBuild|Python 3.7 (32-bit)|$(MSBuildProjectFullPath)</InterpreterId>
+    <InterpreterId>MSBuild|Python 3.12 (64-bit)|$(MSBuildProjectFullPath)</InterpreterId>
     <TestFramework>unittest</TestFramework>
     <UnitTestPattern>test*.py</UnitTestPattern>
     <UnitTestRootDirectory>.</UnitTestRootDirectory>
@@ -54,23 +54,14 @@
     <Compile Include="util.py" />
   </ItemGroup>
   <ItemGroup>
-    <Interpreter Include="Python 3.4 (64-bit)\">
-      <Id>Python 3.4 (64-bit)</Id>
-      <Version>3.4</Version>
-      <Description>Python 3.4 (64-bit) (Python 3.4 (64-bit))</Description>
+    <Interpreter Include="Python 3.12 (64-bit)\">
+      <Id>Python 3.12 (64-bit)</Id>
+      <Version>0.0</Version>
+      <Description>Python 3.12 (64-bit) (Python 3.12 (64-bit))</Description>
       <InterpreterPath>Scripts\python.exe</InterpreterPath>
       <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
       <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
       <Architecture>X64</Architecture>
-    </Interpreter>
-    <Interpreter Include="Python 3.7 (32-bit)\">
-      <Id>Python 3.7 (32-bit)</Id>
-      <Version>3.7</Version>
-      <Description>Python 3.7 (32-bit) (Python 3.7 (32-bit))</Description>
-      <InterpreterPath>Scripts\python.exe</InterpreterPath>
-      <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
-      <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
-      <Architecture>X86</Architecture>
     </Interpreter>
   </ItemGroup>
   <ItemGroup>
