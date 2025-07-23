@@ -279,7 +279,7 @@ class SingleFileHashesStorage(HashStorageAbstract):
 
         try:
             if not self.json_format:
-                hash_file = open(hash_file_name, "a")
+                hash_file = open(hash_file_name, "a", encoding="utf-8")
 
             for data_file_name, hash_info in hash_data_sorted:
                 # Check that current hash entry should be stored
